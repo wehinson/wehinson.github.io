@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Idle Grow v0.1</title>
+	<script src = "js/script.js"></script>
+	<link rel = "stylesheet" href = "css/style.css">
+</head>
+<body onload = "Init()">
+
+<p class = "totalandbutton" id = "totalandbutton">
+
+	<button class = "growButton" onclick = "Click()">Grow Wheat</button>   
+	<label class = "clickandsec" id = "perSecond"> Per Second: 0 </label>
+	<label class = "clickandsec" id = "perClick"> Per Click: 1  </label>
+	<label class = "total" id = "total">Funds: 0</label>
+
+</p>	
+
+<div class = "clickupgrades">
+
+	<button class = "clickUpgrade" id = "hoe" onclick = "buyClickUpgrade(hoe)">
+		Hoe (+1/Click) | Price: 0
+	</button>
+
+</div>
+
+</body>
+</html>
