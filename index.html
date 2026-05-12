@@ -1,28 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Idle Grow v0.1</title>
-	<script src = "js/script.js"></script>
-	<link rel = "stylesheet" href = "css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Country Duel Prototype</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/script.js" defer></script>
 </head>
-<body onload = "Init()">
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>🌍 Country Duel</h1>
+      <p>Head-to-head country picks for you and your partner.</p>
+    </header>
 
-<p class = "totalandbutton" id = "totalandbutton">
+    <section class="controls">
+      <label for="playerSelect">Voting as:</label>
+      <select id="playerSelect"></select>
+      <button id="nextPairBtn" class="secondary">Skip Pair</button>
+    </section>
 
-	<button class = "growButton" onclick = "Click()">Grow Wheat</button>   
-	<label class = "clickandsec" id = "perSecond"> Per Second: 0 </label>
-	<label class = "clickandsec" id = "perClick"> Per Click: 1  </label>
-	<label class = "total" id = "total">Funds: 0</label>
+    <section id="battle" class="battle"></section>
 
-</p>	
+    <section class="actions">
+      <button id="tieBtn" class="tie">🤝 Hard to choose (Tie)</button>
+    </section>
 
-<div class = "clickupgrades">
-
-	<button class = "clickUpgrade" id = "hoe" onclick = "buyClickUpgrade(hoe)">
-		Hoe (+1/Click) | Price: 0
-	</button>
-
-</div>
-
+    <section class="leaderboard">
+      <h2>Leaderboard</h2>
+      <div class="tabs">
+        <button data-view="combined" class="tab active">Combined</button>
+        <button data-view="you" class="tab">You</button>
+        <button data-view="partner" class="tab">Partner</button>
+      </div>
+      <ol id="rankingList"></ol>
+    </section>
+  </main>
 </body>
 </html>
