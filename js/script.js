@@ -4,6 +4,7 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
+const APP_VERSION = "v0.8.0";
 const SESSION_PREFIX = "country-ranker-session-";
 const SESSION_BACKUP_PREFIX = "country-ranker-session-backup-";
 const SESSION_INDEX_KEY = "country-ranker-session-index";
@@ -23,6 +24,7 @@ let storageWarning = "";
 const els = {
   onboarding: document.querySelector("#onboarding"),
   welcomePanel: document.querySelector("#welcomePanel"),
+  appVersionLabel: document.querySelector("#appVersionLabel"),
   existingPanel: document.querySelector("#existingPanel"),
   newPanel: document.querySelector("#newPanel"),
   profilePanel: document.querySelector("#profilePanel"),
@@ -990,3 +992,4 @@ els.photoModal.addEventListener("click", (event) => {
 });
 
 showPanel(els.welcomePanel);
+els.appVersionLabel.textContent = APP_VERSION;
