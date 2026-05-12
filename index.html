@@ -98,6 +98,11 @@
               <button class="remove-button has-tooltip" id="leftSuggestRemoval" type="button">Suggest removal</button>
               <button class="more-photos" id="leftMorePhotos" type="button">More photos</button>
             </div>
+            <details class="comment-box">
+              <summary>Comment</summary>
+              <textarea id="leftComment" rows="3" placeholder="Add a note for this country"></textarea>
+              <button id="leftSaveComment" type="button">Save comment</button>
+            </details>
           </div>
           <button class="choose" id="leftChoose" type="button">Choose this country</button>
         </article>
@@ -118,6 +123,11 @@
               <button class="remove-button has-tooltip" id="rightSuggestRemoval" type="button">Suggest removal</button>
               <button class="more-photos" id="rightMorePhotos" type="button">More photos</button>
             </div>
+            <details class="comment-box">
+              <summary>Comment</summary>
+              <textarea id="rightComment" rows="3" placeholder="Add a note for this country"></textarea>
+              <button id="rightSaveComment" type="button">Save comment</button>
+            </details>
           </div>
           <button class="choose" id="rightChoose" type="button">Choose this country</button>
         </article>
@@ -152,6 +162,13 @@
           <summary>Removed countries</summary>
           <ul id="removedList"></ul>
         </details>
+
+        <div class="comments-panel">
+          <div class="section-heading">
+            <h2>Comments</h2>
+          </div>
+          <ul id="commentsFeed"></ul>
+        </div>
       </section>
 
       <footer class="donation-footer" aria-label="Support this project">

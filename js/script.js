@@ -4,7 +4,7 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v0.8.0";
+const APP_VERSION = "v0.9.0";
 const SESSION_PREFIX = "country-ranker-session-";
 const SESSION_BACKUP_PREFIX = "country-ranker-session-backup-";
 const SESSION_INDEX_KEY = "country-ranker-session-index";
@@ -60,6 +60,8 @@ const els = {
   leftRating: document.querySelector("#leftRating"),
   leftLove: document.querySelector("#leftLove"),
   leftSuggestRemoval: document.querySelector("#leftSuggestRemoval"),
+  leftComment: document.querySelector("#leftComment"),
+  leftSaveComment: document.querySelector("#leftSaveComment"),
   leftMorePhotos: document.querySelector("#leftMorePhotos"),
   rightPhotos: document.querySelector("#rightPhotos"),
   rightName: document.querySelector("#rightName"),
@@ -67,6 +69,8 @@ const els = {
   rightRating: document.querySelector("#rightRating"),
   rightLove: document.querySelector("#rightLove"),
   rightSuggestRemoval: document.querySelector("#rightSuggestRemoval"),
+  rightComment: document.querySelector("#rightComment"),
+  rightSaveComment: document.querySelector("#rightSaveComment"),
   rightMorePhotos: document.querySelector("#rightMorePhotos"),
   leftChoose: document.querySelector("#leftChoose"),
   rightChoose: document.querySelector("#rightChoose"),
@@ -85,6 +89,7 @@ const els = {
   lovedPartner: document.querySelector("#lovedPartner"),
   lovedList: document.querySelector("#lovedList"),
   removedList: document.querySelector("#removedList"),
+  commentsFeed: document.querySelector("#commentsFeed"),
   donationFooter: document.querySelector(".donation-footer"),
   hideDonation: document.querySelector("#hideDonation"),
   photoModal: document.querySelector("#photoModal"),
@@ -158,6 +163,7 @@ function makeProfile() {
     rounds: 0,
     currentPair: null,
     loved: [],
+    comments: {},
     donationHidden: false
   };
 }
@@ -312,6 +318,7 @@ function hydrateSession(savedSession) {
     restoredProfile.rounds = Number.isFinite(savedProfile.rounds) ? savedProfile.rounds : 0;
     restoredProfile.currentPair = normalizePair(savedProfile.currentPair);
     restoredProfile.loved = normalizeCountryIdList(savedProfile.loved);
+    restoredProfile.comments = normalizeComments(savedProfile.comments);
     restoredProfile.donationHidden = Boolean(savedProfile.donationHidden);
 
     Object.entries(savedProfile.ratings || {}).forEach(([id, rating]) => {
@@ -338,6 +345,39 @@ function normalizeRemovalSuggestions(suggestions) {
   Object.entries(suggestions || {}).forEach(([id, suggestedBy]) => {
     if (countryById.has(id) && ["me", "partner"].includes(suggestedBy)) {
       normalized[id] = suggestedBy;
+    }
+  });
+
+  return normalized;
+}
+
+function normalizeComments(comments) {
+  const normalized = {};
+
+  Object.entries(comments || {}).forEach(([id, comment]) => {
+    if (!countryById.has(id)) {
+      return;
+    }
+
+    if (typeof comment === "string") {
+      const text = comment.trim();
+
+      if (text) {
+        normalized[id] = {
+          text,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return;
+    }
+
+    const text = String(comment?.text || "").trim();
+
+    if (text) {
+      normalized[id] = {
+        text,
+        updatedAt: comment?.updatedAt || new Date().toISOString()
+      };
     }
   });
 
@@ -466,6 +506,7 @@ function renderApp(message = els.lastAction.textContent || "Ready") {
   renderRankings();
   renderLovedList();
   renderRemovedList();
+  renderCommentsFeed();
   renderDonationFooter();
   renderSession(message);
 }
@@ -506,6 +547,8 @@ function renderCountry(side, country) {
   const nameLink = els[`${side}Name`];
   const loveButton = els[`${side}Love`];
   const removalButton = els[`${side}SuggestRemoval`];
+  const commentInput = els[`${side}Comment`];
+  const saveCommentButton = els[`${side}SaveComment`];
 
   els[`${side}Photos`].innerHTML = previewPhotos.map((photo, index) => (
     `<img src="${escapeHtml(photo)}" alt="${escapeHtml(country.name)} photo ${index + 1}">`
@@ -515,6 +558,7 @@ function renderCountry(side, country) {
   els[`${side}Summary`].textContent = country.summary;
   els[`${side}Rating`].textContent = `ELO ${country.rating}`;
   renderCountryActionButtons(country, loveButton, removalButton);
+  renderCommentBox(country, commentInput, saveCommentButton);
   moreButton.hidden = country.photos.length <= PREVIEW_PHOTOS;
   moreButton.textContent = `More photos (${country.photos.length})`;
   moreButton.onclick = () => openPhotoModal(country);
@@ -547,6 +591,13 @@ function renderCountryActionButtons(country, loveButton, removalButton) {
   }
 
   removalButton.onclick = () => handleRemoval(country.id);
+}
+
+function renderCommentBox(country, commentInput, saveCommentButton) {
+  const comment = getActiveProfile().comments[country.id];
+
+  commentInput.value = comment?.text || "";
+  saveCommentButton.onclick = () => saveComment(country.id, commentInput.value);
 }
 
 function getPreviewPhotos(photos) {
@@ -664,6 +715,25 @@ function renderRemovedList() {
     : `<li class="empty-list">No removed countries yet.</li>`;
 }
 
+function renderCommentsFeed() {
+  const comments = ["me", "partner"].flatMap((profileName) => (
+    Object.entries(session.profiles[profileName].comments || {}).map(([countryId, comment]) => ({
+      profileName,
+      country: countryById.get(countryId),
+      text: comment.text,
+      updatedAt: comment.updatedAt
+    }))
+  ))
+    .filter((item) => item.country && item.text)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+  els.commentsFeed.innerHTML = comments.length
+    ? comments.map((item) => (
+      `<li><strong><a href="${wikipediaUrl(item.country.name)}" target="_blank" rel="noopener">${escapeHtml(item.country.name)}</a> · ${escapeHtml(getProfileName(item.profileName))}</strong><span>${escapeHtml(item.text)}</span></li>`
+    )).join("")
+    : `<li class="empty-list">No comments yet.</li>`;
+}
+
 function renderDonationFooter() {
   els.donationFooter.hidden = Boolean(getActiveProfile().donationHidden);
 }
@@ -720,6 +790,23 @@ function toggleLove(countryId) {
 
   saveSession();
   renderApp(index >= 0 ? "Removed from loved countries" : "Saved to loved countries");
+}
+
+function saveComment(countryId, value) {
+  const text = String(value || "").trim();
+  const comments = getActiveProfile().comments;
+
+  if (text) {
+    comments[countryId] = {
+      text,
+      updatedAt: new Date().toISOString()
+    };
+  } else {
+    delete comments[countryId];
+  }
+
+  saveSession();
+  renderApp(text ? "Comment saved" : "Comment removed");
 }
 
 function handleRemoval(countryId) {
@@ -785,6 +872,7 @@ function resetActiveRanking() {
   const previousProfile = getActiveProfile();
   session.profiles[session.activeProfile] = makeProfile();
   session.profiles[session.activeProfile].loved = previousProfile.loved;
+  session.profiles[session.activeProfile].comments = previousProfile.comments;
   session.profiles[session.activeProfile].donationHidden = previousProfile.donationHidden;
   session.profiles[session.activeProfile].currentPair = pickPairIds();
   saveSession();
