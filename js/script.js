@@ -4,7 +4,7 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v1.1.1";
+const APP_VERSION = "v1.1.2";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -679,6 +679,9 @@ function renderCountry(side, country) {
   els[`${side}Photos`].innerHTML = previewPhotos.map((photo, index) => (
     `<img src="${escapeHtml(photo)}" alt="${escapeHtml(country.name)} photo ${index + 1}">`
   )).join("");
+  els[`${side}Photos`].querySelectorAll("img").forEach((img, i) => {
+    setupPhotoFallback(img, country.photos, i);
+  });
   nameLink.textContent = country.name;
   nameLink.href = wikipediaUrl(country.name);
   els[`${side}Summary`].textContent = country.summary;
@@ -724,6 +727,24 @@ function renderCommentBox(country, commentInput, saveCommentButton) {
 
   commentInput.value = comment?.text || "";
   saveCommentButton.onclick = () => saveComment(country.id, commentInput.value);
+}
+
+function setupPhotoFallback(img, allPhotos, gridIndex) {
+  let currentIndex = Math.min(gridIndex, allPhotos.length - 1);
+  let retried = false;
+
+  img.onerror = () => {
+    if (!retried) {
+      retried = true;
+      const src = allPhotos[currentIndex];
+      img.src = "";
+      setTimeout(() => { img.src = src; }, 1000);
+    } else if (currentIndex + 1 < allPhotos.length) {
+      retried = false;
+      currentIndex += 1;
+      img.src = allPhotos[currentIndex];
+    }
+  };
 }
 
 function getPreviewPhotos(photos) {
