@@ -5426,5 +5426,217 @@
                        "https://entiretravel.imgix.net/getmedia/9e6691e3-a8c3-4411-8b68-9b7323b9dd36/beautiful-nature-tropical-beach-sea.jpg?auto=format"
                    ]
     }
+    const US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID = {
+  "algeria": 2, // Algeria
+  "angola": 2, // Angola
+  "benin": 2, // Benin
+  "botswana": 2, // Botswana
+  "burkina-faso": 4, // Burkina Faso
+  "burundi": 3, // Burundi
+  "cabo-verde": 1, // Cabo Verde
+  "cameroon": 2, // Cameroon
+  "central-african-republic": 4, // Central African Republic
+  "chad": 4, // Chad
+  "comoros": 2, // Comoros
+  "democratic-republic-of-the-congo": 4, // Democratic Republic of the Congo
+  "republic-of-the-congo": 2, // Republic of the Congo
+  "djibouti": 2, // Djibouti
+  "egypt": 2, // Egypt
+  "equatorial-guinea": 2, // Equatorial Guinea
+  "eritrea": 2, // Eritrea
+  "eswatini": 2, // Eswatini
+  "ethiopia": 3, // Ethiopia
+  "gabon": 2, // Gabon
+  "gambia": 2, // Gambia
+  "ghana": 2, // Ghana
+  "guinea": 2, // Guinea
+  "guinea-bissau": 3, // Guinea-Bissau
+  "ivory-coast-c-te-d-ivoire": 2, // Ivory Coast (Côte d'Ivoire)
+  "kenya": 2, // Kenya
+  "lesotho": 2, // Lesotho
+  "liberia": 2, // Liberia
+  "libya": 4, // Libya
+  "madagascar": 2, // Madagascar
+  "malawi": 2, // Malawi
+  "mali": 4, // Mali
+  "mauritania": 3, // Mauritania
+  "mauritius": 2, // Mauritius
+  "morocco": 2, // Morocco
+  "mozambique": 2, // Mozambique
+  "namibia": 2, // Namibia
+  "niger": 4, // Niger
+  "nigeria": 3, // Nigeria
+  "rwanda": 3, // Rwanda
+  "s-o-tom-and-pr-ncipe": 3, // São Tomé and Príncipe
+  "senegal": 1, // Senegal
+  "seychelles": 1, // Seychelles
+  "sierra-leone": 2, // Sierra Leone
+  "somalia": 4, // Somalia
+  "south-africa": 2, // South Africa
+  "south-sudan": 4, // South Sudan
+  "sudan": 4, // Sudan
+  "tanzania": 3, // Tanzania
+  "togo": 2, // Togo
+  "tunisia": 2, // Tunisia
+  "uganda": 4, // Uganda
+  "zambia": 1, // Zambia
+  "zimbabwe": 2, // Zimbabwe
+  "afghanistan": 4, // Afghanistan
+  "armenia": 2, // Armenia
+  "azerbaijan": 3, // Azerbaijan
+  "bahrain": 3, // Bahrain
+  "bangladesh": 3, // Bangladesh
+  "bhutan": 1, // Bhutan
+  "brunei": 1, // Brunei
+  "cambodia": 2, // Cambodia
+  "china": 2, // China
+  "cyprus": 3, // Cyprus
+  "georgia": 1, // Georgia
+  "india": 2, // India
+  "indonesia": 2, // Indonesia
+  "iran": 4, // Iran
+  "iraq": 4, // Iraq
+  "israel": 3, // Israel
+  "japan": 1, // Japan
+  "jordan": 2, // Jordan
+  "kazakhstan": 1, // Kazakhstan
+  "kuwait": 3, // Kuwait
+  "kyrgyzstan": 1, // Kyrgyzstan
+  "laos": 2, // Laos
+  "lebanon": 4, // Lebanon
+  "malaysia": 1, // Malaysia
+  "maldives": 2, // Maldives
+  "mongolia": 1, // Mongolia
+  "myanmar": 4, // Myanmar
+  "nepal": 2, // Nepal
+  "north-korea": 4, // North Korea
+  "oman": 3, // Oman
+  "pakistan": 3, // Pakistan
+  "palestine": 3, // Palestine
+  "philippines": 2, // Philippines
+  "qatar": 3, // Qatar
+  "russia": 4, // Russia
+  "saudi-arabia": 3, // Saudi Arabia
+  "singapore": 1, // Singapore
+  "south-korea": 1, // South Korea
+  "sri-lanka": 2, // Sri Lanka
+  "syria": 4, // Syria
+  "tajikistan": 2, // Tajikistan
+  "thailand": 2, // Thailand
+  "timor-leste": 2, // Timor-Leste
+  "turkmenistan": 1, // Turkmenistan
+  "t-rkiye-turkey": 2, // Türkiye (Turkey)
+  "united-arab-emirates": 3, // United Arab Emirates
+  "uzbekistan": 1, // Uzbekistan
+  "vietnam": 1, // Vietnam
+  "yemen": 4, // Yemen
+  "taiwan": 1, // Taiwan
+  "hong-kong": 2, // Hong Kong
+  "macau": 2, // Macau
+  "albania": 2, // Albania
+  "andorra": 1, // Andorra
+  "austria": 1, // Austria
+  "belarus": 4, // Belarus
+  "belgium": 2, // Belgium
+  "bosnia-and-herzegovina": 2, // Bosnia and Herzegovina
+  "bulgaria": 1, // Bulgaria
+  "croatia": 1, // Croatia
+  "czechia-czech-republic": 1, // Czechia (Czech Republic)
+  "denmark": 2, // Denmark
+  "estonia": 1, // Estonia
+  "finland": 1, // Finland
+  "france": 2, // France
+  "germany": 2, // Germany
+  "greece": 1, // Greece
+  "hungary": 1, // Hungary
+  "iceland": 1, // Iceland
+  "ireland": 1, // Ireland
+  "italy": 2, // Italy
+  "kosovo": 2, // Kosovo
+  "latvia": 1, // Latvia
+  "liechtenstein": 1, // Liechtenstein
+  "lithuania": 1, // Lithuania
+  "luxembourg": 1, // Luxembourg
+  "malta": 1, // Malta
+  "moldova": 2, // Moldova
+  "monaco": 2, // Monaco
+  "montenegro": 1, // Montenegro
+  "netherlands": 2, // Netherlands
+  "north-macedonia": 1, // North Macedonia
+  "norway": 1, // Norway
+  "poland": 1, // Poland
+  "portugal": 1, // Portugal
+  "romania": 1, // Romania
+  "san-marino": 2, // San Marino
+  "serbia": 2, // Serbia
+  "slovakia": 1, // Slovakia
+  "slovenia": 1, // Slovenia
+  "spain": 2, // Spain
+  "sweden": 2, // Sweden
+  "switzerland": 1, // Switzerland
+  "ukraine": 4, // Ukraine
+  "united-kingdom": 2, // United Kingdom
+  "vatican-city": 2, // Vatican City
+  "antigua-and-barbuda": 1, // Antigua and Barbuda
+  "bahamas": 2, // Bahamas
+  "barbados": 1, // Barbados
+  "belize": 2, // Belize
+  "canada": 1, // Canada
+  "costa-rica": 2, // Costa Rica
+  "cuba": 2, // Cuba
+  "dominica": 1, // Dominica
+  "dominican-republic": 2, // Dominican Republic
+  "el-salvador": 1, // El Salvador
+  "grenada": 2, // Grenada
+  "guatemala": 3, // Guatemala
+  "haiti": 4, // Haiti
+  "honduras": 3, // Honduras
+  "jamaica": 2, // Jamaica
+  "mexico": 2, // Mexico
+  "nicaragua": 3, // Nicaragua
+  "panama": 2, // Panama
+  "saint-kitts-and-nevis": 1, // Saint Kitts and Nevis
+  "saint-lucia": 1, // Saint Lucia
+  "saint-vincent-and-the-grenadines": 1, // Saint Vincent and the Grenadines
+  "trinidad-and-tobago": 3, // Trinidad and Tobago
+  "united-states": null, // United States
+  "puerto-rico": null, // Puerto Rico
+  "greenland": 2, // Greenland
+  "argentina": 1, // Argentina
+  "bolivia": 2, // Bolivia
+  "brazil": 2, // Brazil
+  "chile": 2, // Chile
+  "colombia": 3, // Colombia
+  "ecuador": 2, // Ecuador
+  "guyana": 3, // Guyana
+  "paraguay": 1, // Paraguay
+  "peru": 2, // Peru
+  "suriname": 1, // Suriname
+  "uruguay": 2, // Uruguay
+  "venezuela": 3, // Venezuela
+  "australia": 1, // Australia
+  "fiji": 1, // Fiji
+  "kiribati": 1, // Kiribati
+  "marshall-islands": 1, // Marshall Islands
+  "micronesia": 1, // Micronesia
+  "nauru": 1, // Nauru
+  "new-zealand": 1, // New Zealand
+  "palau": 1, // Palau
+  "papua-new-guinea": 3, // Papua New Guinea
+  "samoa": 1, // Samoa
+  "solomon-islands": 2, // Solomon Islands
+  "tonga": 1, // Tonga
+  "tuvalu": 1, // Tuvalu
+  "vanuatu": 1, // Vanuatu
+};
+
+for (const country of window.COUNTRY_DATA) {
+  country.usTravelAdvisoryLevel = Object.prototype.hasOwnProperty.call(
+    US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID,
+    country.id
+  )
+    ? US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID[country.id]
+    : null;
+}
 ];
 
