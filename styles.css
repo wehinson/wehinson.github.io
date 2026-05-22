@@ -198,6 +198,28 @@ h2 {
   background: rgba(255, 255, 255, 0.55);
 }
 
+.passcode-copy-btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  font-weight: 700;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.passcode-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+h1 .passcode-copy-btn {
+  font-size: 0.55em;
+  vertical-align: middle;
+  padding: 6px 14px;
+}
+
 .help-button {
   min-height: 36px;
   padding: 0 12px;

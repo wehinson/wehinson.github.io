@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.1.5";
+const APP_VERSION = "v1.1.6";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -41,6 +41,7 @@ const els = {
   backToWelcomeFromExisting: document.querySelector("#backToWelcomeFromExisting"),
   backToWelcomeFromNew: document.querySelector("#backToWelcomeFromNew"),
   newPasscode: document.querySelector("#newPasscode"),
+  copyNewPasscode: document.querySelector("#copyNewPasscode"),
   newMessage: document.querySelector("#newMessage"),
   meNameInput: document.querySelector("#meNameInput"),
   partnerNameInput: document.querySelector("#partnerNameInput"),
@@ -1084,6 +1085,14 @@ function updateProfileChoiceLabels() {
   els.choosePartner.textContent = getProfileName("partner");
 }
 
+function copyToClipboard(text, button) {
+  navigator.clipboard.writeText(text).then(() => {
+    const original = button.textContent;
+    button.textContent = "Copied!";
+    setTimeout(() => { button.textContent = original; }, 1500);
+  });
+}
+
 els.showExistingSession.addEventListener("click", () => {
   els.existingMessage.textContent = "";
   els.passcodeInput.value = "";
@@ -1106,6 +1115,16 @@ els.passcodeInput.addEventListener("input", () => {
 
 els.backToWelcomeFromExisting.addEventListener("click", () => showPanel(els.welcomePanel));
 els.backToWelcomeFromNew.addEventListener("click", () => showPanel(els.welcomePanel));
+
+els.copyNewPasscode.addEventListener("click", () => {
+  copyToClipboard(els.newPasscode.textContent, els.copyNewPasscode);
+});
+
+els.sessionPasscode.addEventListener("click", () => {
+  if (session?.passcode) {
+    copyToClipboard(session.passcode, els.sessionPasscode);
+  }
+});
 
 els.loadSession.addEventListener("click", loadOnlineSessionFromInput);
 
