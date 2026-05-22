@@ -4,7 +4,8 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v1.1.3";
+const TOP_FOCUS_COUNT = 25;
+const APP_VERSION = "v1.1.4";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -577,19 +578,49 @@ function applyHardChoice(a, b) {
   b.rating += HARD_TO_CHOOSE_BOOST;
 }
 
+function weightedPickIndex(weights) {
+  const total = weights.reduce((s, w) => s + w, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return i;
+  }
+  return weights.length - 1;
+}
+
 function pickPairIds() {
   const pool = activeBaseCountries();
+  if (pool.length < 2) return null;
 
-  if (pool.length < 2) {
-    return null;
+  const { history, ratings, rounds } = getActiveProfile();
+
+  const seen = {};
+  for (const entry of history) {
+    const [a, b] = entry.split(/[>~]/);
+    seen[a] = (seen[a] || 0) + 1;
+    seen[b] = (seen[b] || 0) + 1;
   }
 
-  const firstIndex = Math.floor(Math.random() * pool.length);
-  let secondIndex = Math.floor(Math.random() * pool.length);
+  const topBoost = 1 + Math.min(rounds / 1000, 1);
+  const sortedByElo = [...pool].sort(
+    (a, b) => (ratings[b.id] || STARTING_ELO) - (ratings[a.id] || STARTING_ELO)
+  );
+  const topIds = new Set(sortedByElo.slice(0, TOP_FOCUS_COUNT).map(c => c.id));
+  const rankWeight = (c) => topIds.has(c.id) ? topBoost : 1;
 
-  while (secondIndex === firstIndex) {
-    secondIndex = Math.floor(Math.random() * pool.length);
-  }
+  const firstWeights = pool.map(c =>
+    (1 / ((seen[c.id] || 0) + 1)) * rankWeight(c)
+  );
+  const firstIndex = weightedPickIndex(firstWeights);
+  const firstElo = ratings[pool[firstIndex].id] || STARTING_ELO;
+
+  const secondWeights = pool.map((c, i) => {
+    if (i === firstIndex) return 0;
+    const appWeight = 1 / ((seen[c.id] || 0) + 1);
+    const eloWeight = 1 / (Math.abs((ratings[c.id] || STARTING_ELO) - firstElo) + 100);
+    return appWeight * eloWeight * rankWeight(c);
+  });
+  const secondIndex = weightedPickIndex(secondWeights);
 
   return [pool[firstIndex].id, pool[secondIndex].id];
 }
