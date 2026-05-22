@@ -4,7 +4,7 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v1.0.0-online";
+const APP_VERSION = "v1.1.0";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
