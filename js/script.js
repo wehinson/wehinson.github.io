@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.1.4";
+const APP_VERSION = "v1.1.5";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -1240,6 +1240,32 @@ els.closeModal.addEventListener("click", () => {
 els.photoModal.addEventListener("click", (event) => {
   if (event.target === els.photoModal) {
     els.photoModal.close();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.target.closest("input, textarea")) return;
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+  const inGame = session && currentPair.length === 2;
+
+  switch (event.key) {
+    case "[":
+      if (inGame) { event.preventDefault(); els.leftChoose.click(); }
+      break;
+    case "]":
+      if (inGame) { event.preventDefault(); els.rightChoose.click(); }
+      break;
+    case ",":
+      if (inGame) { event.preventDefault(); els.hardChoice.click(); }
+      break;
+    case ".":
+      if (inGame) { event.preventDefault(); els.skipPair.click(); }
+      break;
+    case "/":
+      event.preventDefault();
+      els.helpModal.open ? els.helpModal.close() : els.helpModal.showModal();
+      break;
   }
 });
 
