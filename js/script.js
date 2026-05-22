@@ -5,13 +5,14 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
+const HISTORY_SCAN_LIMIT = 5000;
 const ADVISORY_INFO = {
   1: { label: "Level 1 · Normal",        title: "Exercise Normal Precautions"  },
   2: { label: "Level 2 · Caution",       title: "Exercise Increased Caution"   },
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.8";
+const APP_VERSION = "v1.2.9";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -37,6 +38,8 @@ const els = {
   existingPanel: document.querySelector("#existingPanel"),
   newPanel: document.querySelector("#newPanel"),
   profilePanel: document.querySelector("#profilePanel"),
+  resumePanel: document.querySelector("#resumePanel"),
+  resumeVersionLabel: document.querySelector("#resumeVersionLabel"),
   openHelp: document.querySelector("#openHelp"),
   helpModal: document.querySelector("#helpModal"),
   closeHelp: document.querySelector("#closeHelp"),
@@ -571,7 +574,7 @@ function beginSession(nextSession, profile = "me") {
 }
 
 function showPanel(panel) {
-  [els.welcomePanel, els.existingPanel, els.newPanel, els.profilePanel].forEach((item) => {
+  [els.welcomePanel, els.existingPanel, els.newPanel, els.profilePanel, els.resumePanel].forEach((item) => {
     item.hidden = item !== panel;
   });
 }
@@ -626,8 +629,11 @@ function pickPairIds() {
 
   const { history, ratings, rounds } = getActiveProfile();
 
+  const recentHistory = history.length > HISTORY_SCAN_LIMIT
+    ? history.slice(-HISTORY_SCAN_LIMIT)
+    : history;
   const seen = {};
-  for (const entry of history) {
+  for (const entry of recentHistory) {
     const [a, b] = entry.split(/[>~]/);
     seen[a] = (seen[a] || 0) + 1;
     seen[b] = (seen[b] || 0) + 1;
@@ -1400,12 +1406,13 @@ document.addEventListener("keydown", (event) => {
 
 els.appVersionLabel.textContent = APP_VERSION;
 els.profileVersionLabel.textContent = APP_VERSION;
+els.resumeVersionLabel.textContent = APP_VERSION;
 
 (async () => {
   const saved = getSavedPasscode();
-  showPanel(els.welcomePanel);
 
   if (saved) {
+    showPanel(els.resumePanel);
     const result = await loadSessionByPasscode(saved);
 
     if (!result.error) {
@@ -1421,4 +1428,6 @@ els.profileVersionLabel.textContent = APP_VERSION;
 
     clearSavedPasscode();
   }
+
+  showPanel(els.welcomePanel);
 })();
