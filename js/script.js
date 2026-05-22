@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.2.0";
+const APP_VERSION = "v1.2.1";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -803,9 +803,25 @@ function renderCountryActionButtons(country, loveButton, removalButton) {
 
 function renderCommentBox(country, commentInput, saveCommentButton) {
   const comment = getActiveProfile().comments[country.id];
+  const details = commentInput.closest("details");
+  const summary = details.querySelector("summary");
+  const hasSaved = Boolean(comment?.text);
 
   commentInput.value = comment?.text || "";
-  saveCommentButton.onclick = () => saveComment(country.id, commentInput.value);
+  commentInput.readOnly = hasSaved;
+  saveCommentButton.textContent = hasSaved ? "Edit" : "Save comment";
+  details.classList.toggle("has-comment", hasSaved);
+  summary.textContent = hasSaved ? "Comment ✓" : "Comment";
+
+  saveCommentButton.onclick = () => {
+    if (commentInput.readOnly) {
+      commentInput.readOnly = false;
+      saveCommentButton.textContent = "Save comment";
+      commentInput.focus();
+    } else {
+      saveComment(country.id, commentInput.value);
+    }
+  };
 }
 
 function setupPhotoFallback(img, allPhotos, gridIndex) {
