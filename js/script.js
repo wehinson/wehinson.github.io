@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.1.9";
+const APP_VERSION = "v1.2.0";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -206,6 +206,20 @@ function isValidPasscode(passcode) {
 
 function generatePasscode() {
   return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+const PASSCODE_STORE_KEY = "mapcrush_passcode";
+
+function savePasscodeLocally(passcode) {
+  try { localStorage.setItem(PASSCODE_STORE_KEY, passcode); } catch {}
+}
+
+function getSavedPasscode() {
+  try { return localStorage.getItem(PASSCODE_STORE_KEY) || ""; } catch { return ""; }
+}
+
+function clearSavedPasscode() {
+  try { localStorage.removeItem(PASSCODE_STORE_KEY); } catch {}
 }
 
 function saveSession(options = {}) {
@@ -528,6 +542,7 @@ function normalizePair(pair) {
 
 function beginSession(nextSession, profile = "me") {
   session = nextSession;
+  savePasscodeLocally(session.passcode);
   session.activeProfile = session.mode === "partner" ? profile : "me";
   rankingView = session.mode === "partner" ? "together" : "active";
   rankingsExpanded = false;
@@ -1284,6 +1299,7 @@ els.toggleRankings.addEventListener("click", () => {
   renderRankings();
 });
 els.changeSession.addEventListener("click", () => {
+  clearSavedPasscode();
   session = null;
   els.onboarding.hidden = false;
   showPanel(els.welcomePanel);
@@ -1324,5 +1340,26 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-showPanel(els.welcomePanel);
 els.appVersionLabel.textContent = APP_VERSION;
+
+(async () => {
+  const saved = getSavedPasscode();
+  showPanel(els.welcomePanel);
+
+  if (saved) {
+    const result = await loadSessionByPasscode(saved);
+
+    if (!result.error) {
+      if (result.session.mode === "partner") {
+        session = result.session;
+        updateProfileChoiceLabels();
+        showPanel(els.profilePanel);
+      } else {
+        beginSession(result.session);
+      }
+      return;
+    }
+
+    clearSavedPasscode();
+  }
+})();
