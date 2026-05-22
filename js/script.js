@@ -12,7 +12,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v2.1.0";
+const APP_VERSION = "v2.1.1";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -134,6 +134,7 @@ const els = {
   suggestionsList: document.querySelector("#suggestionsList"),
   suggestionsSection: document.querySelector("#suggestionsSection"),
   openFeedback: document.querySelector("#openFeedback"),
+  openFeedbackFromHelp: document.querySelector("#openFeedbackFromHelp"),
   closeFeedback: document.querySelector("#closeFeedback"),
   feedbackModal: document.querySelector("#feedbackModal"),
   feedbackText: document.querySelector("#feedbackText"),
@@ -1438,6 +1439,10 @@ els.openHelp.addEventListener("click", () => {
 });
 els.closeHelp.addEventListener("click", () => {
   els.helpModal.close();
+});
+els.openFeedbackFromHelp.addEventListener("click", () => {
+  els.helpModal.close();
+  els.openFeedback.click();
 });
 els.openFeedback.addEventListener("click", () => {
   els.feedbackText.value = "";
