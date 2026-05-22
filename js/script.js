@@ -4,7 +4,7 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v1.1.2";
+const APP_VERSION = "v1.1.3";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -165,7 +165,8 @@ function makeProfile() {
     currentPair: null,
     loved: [],
     comments: {},
-    donationHidden: false
+    donationHidden: false,
+    history: []
   };
 }
 
@@ -445,6 +446,7 @@ function hydrateSession(savedSession) {
     restoredProfile.loved = normalizeCountryIdList(savedProfile.loved);
     restoredProfile.comments = normalizeComments(savedProfile.comments);
     restoredProfile.donationHidden = Boolean(savedProfile.donationHidden);
+    restoredProfile.history = Array.isArray(savedProfile.history) ? savedProfile.history : [];
 
     Object.entries(savedProfile.ratings || {}).forEach(([id, rating]) => {
       if (countryById.has(id) && Number.isFinite(rating)) {
@@ -1095,16 +1097,19 @@ els.choosePartner.addEventListener("click", () => beginSession(session, "partner
 
 els.leftChoose.addEventListener("click", () => {
   applyWin(currentPair[0], currentPair[1]);
+  getActiveProfile().history.push(`${currentPair[0].id}>${currentPair[1].id}`);
   advance(`${currentPair[0].name} chosen`);
 });
 
 els.rightChoose.addEventListener("click", () => {
   applyWin(currentPair[1], currentPair[0]);
+  getActiveProfile().history.push(`${currentPair[1].id}>${currentPair[0].id}`);
   advance(`${currentPair[1].name} chosen`);
 });
 
 els.hardChoice.addEventListener("click", () => {
   applyHardChoice(currentPair[0], currentPair[1]);
+  getActiveProfile().history.push(`${currentPair[0].id}~${currentPair[1].id}`);
   advance("Hard to choose: both countries got a small boost");
 });
 
