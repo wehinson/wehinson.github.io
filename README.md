@@ -16,17 +16,33 @@ The browser no longer uses localStorage or cookies as the save system. If the Cl
 
 Passcodes are six digits only, such as `482913`.
 
-## Cloudflare Pages Setup
+## Cloudflare Workers Setup
 
-This app has no build step. To publish it on Cloudflare Pages, upload or connect this folder with `index.html` at the root.
+This app is configured as a Cloudflare Worker with static assets. Use a **Worker** project, not a Pages project. A Pages project cannot be converted into a Worker project, so create a new Worker connected to the same GitHub repo if the current Cloudflare project was created as Pages.
 
-1. Create a Cloudflare Pages project from this folder.
+1. In Cloudflare, create a new Worker from this folder/repo with Workers Builds.
 2. Create a KV namespace in Cloudflare named something like `country-ranker-sessions`.
-3. In the Pages project settings, add a KV binding named `KV_BINDING`, `SESSIONS`, or `KV` and connect it to that namespace. The included `wrangler.jsonc` already declares `KV_BINDING`.
-4. Deploy the Pages project. The file `functions/api/sessions/[[path]].js` becomes the online save API at `/api/sessions`.
+3. The included `wrangler.jsonc` declares the `KV_BINDING` namespace ID and static assets.
+4. Use `npx wrangler deploy` as the deploy command.
 5. Open the deployed site, create a ranking, copy the six-digit passcode, then load that same passcode from another browser/device.
 
-For local Cloudflare testing, install Wrangler and run `npx wrangler pages dev .`. Opening the plain `index.html` file directly will not have the Cloudflare KV API.
+Recommended build settings:
+
+```text
+Build command:
+echo "No build step"
+
+Deploy command:
+npx wrangler deploy
+
+Non-production branch deploy command:
+npx wrangler versions upload
+
+Root directory:
+/
+```
+
+For local Cloudflare testing, install Wrangler and run `npx wrangler dev`. Opening the plain `index.html` file directly will not have the Cloudflare KV API.
 
 ## Country Data Format
 
