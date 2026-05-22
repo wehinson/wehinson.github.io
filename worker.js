@@ -1,6 +1,8 @@
 const SESSION_PREFIX = "session:";
+const FEEDBACK_PREFIX = "feedback:";
 const PASSCODE_PATTERN = /^\d{6}$/;
 const BODY_SIZE_LIMIT = 512 * 1024; // 512 KB — generous for real use, blocks abuse
+const FEEDBACK_SIZE_LIMIT = 64 * 1024; // 64 KB per feedback entry
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,9 +18,61 @@ export default {
       return handleSessionRequest(request, env);
     }
 
+    if (url.pathname === "/api/feedback") {
+      return handleFeedbackRequest(request, env);
+    }
+
     return env.ASSETS.fetch(request);
   }
 };
+
+async function handleFeedbackRequest(request, env) {
+  if (request.method === "OPTIONS") {
+    return jsonResponse({}, 204);
+  }
+
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed." }, 405);
+  }
+
+  const store = getSessionStore(env);
+  if (!store) {
+    return jsonResponse({ error: "Cloudflare KV binding is missing." }, 500);
+  }
+
+  let rawText;
+  try {
+    rawText = await request.text();
+  } catch {
+    return jsonResponse({ error: "Send feedback as JSON." }, 400);
+  }
+
+  if (rawText.length > FEEDBACK_SIZE_LIMIT) {
+    return jsonResponse({ error: "Feedback exceeds the 64 KB limit." }, 413);
+  }
+
+  let body;
+  try {
+    body = JSON.parse(rawText);
+  } catch {
+    return jsonResponse({ error: "Send feedback as JSON." }, 400);
+  }
+
+  const message = String(body?.message || "").trim();
+  if (!message) {
+    return jsonResponse({ error: "Feedback message is required." }, 400);
+  }
+
+  const entry = {
+    message: message.slice(0, 4000),
+    snapshot: body.snapshot || null,
+    receivedAt: new Date().toISOString()
+  };
+
+  const key = `${FEEDBACK_PREFIX}${entry.receivedAt}:${Math.random().toString(36).slice(2, 8)}`;
+  await store.put(key, JSON.stringify(entry));
+  return jsonResponse({ ok: true, key }, 201);
+}
 
 async function handleSessionRequest(request, env) {
   const sessions = getSessionStore(env);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MapCrush</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css?v=2.0.0">
+    <link rel="stylesheet" href="styles.css?v=2.1.0">
   </head>
   <body>
     <section class="onboarding" id="onboarding" aria-label="Start ranking">
@@ -79,6 +79,7 @@
           </div>
         </div>
         <div class="status">
+          <button class="help-button" id="openFeedback" type="button">Feedback</button>
           <button class="help-button" id="openHelp" type="button">Help</button>
           <button class="passcode-copy-btn" id="sessionPasscode" type="button" title="Copy passcode">No passcode</button>
           <span id="activeProfileLabel">Solo</span>
@@ -182,7 +183,15 @@
 
         <details class="removed-panel">
           <summary>Removed countries</summary>
-          <ul id="removedList"></ul>
+          <div class="removal-section" id="suggestionsSection" hidden>
+            <h3>Recommended for removal</h3>
+            <p class="removal-hint">Your partner suggested these. Confirm to remove from future matchups.</p>
+            <ul id="suggestionsList"></ul>
+          </div>
+          <div class="removal-section">
+            <h3>Already removed</h3>
+            <ul id="removedList"></ul>
+          </div>
         </details>
 
         <div class="comments-panel">
@@ -247,10 +256,33 @@
       </div>
     </dialog>
 
+    <dialog class="help-modal" id="feedbackModal">
+      <div class="modal-heading">
+        <h2>Send feedback</h2>
+        <button id="closeFeedback" type="button" aria-label="Close feedback">Close</button>
+      </div>
+      <div class="help-content">
+        <section>
+          <h3>What happened?</h3>
+          <p>Describe what you were doing and what went wrong. The current app state and any recent errors are included automatically.</p>
+          <textarea id="feedbackText" rows="6" placeholder="Tell us what's up…"></textarea>
+        </section>
+        <section id="feedbackDebugSection" hidden>
+          <h3>Debug snapshot</h3>
+          <pre id="feedbackDebug"></pre>
+        </section>
+        <div class="button-row">
+          <button id="toggleFeedbackDebug" type="button">Show debug snapshot</button>
+          <button class="primary-button" id="submitFeedback" type="button">Send</button>
+        </div>
+        <p class="hint" id="feedbackMessage"></p>
+      </div>
+    </dialog>
+
     <div class="floating-tooltip" id="floatingTooltip" role="tooltip" hidden></div>
 
-    <script src="js/country-data.js?v=2.0.0"></script>
-    <script src="js/script.js?v=2.0.0"></script>
+    <script src="js/country-data.js?v=2.1.0"></script>
+    <script src="js/script.js?v=2.1.0"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=BAAXLgoIxPMPmxuYhV8ZN4bfThnNigqFUmrcbJ77ELnuIAehDnwPyiaJ-endmZw_LsEObAOfbziiyoCWag&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
     <script>
       window.addEventListener("load", () => {

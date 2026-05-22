@@ -863,6 +863,76 @@ li span {
   box-shadow: 0 2px 0 var(--gold-dark);
 }
 
+.help-content textarea {
+  width: 100%;
+  min-height: 110px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 2px solid var(--gold-dark);
+  border-radius: 4px;
+  background: #fffaeb;
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.help-content pre {
+  max-height: 220px;
+  margin: 0;
+  padding: 10px;
+  background: #2d1810;
+  color: #f5c842;
+  border: 2px solid var(--gold-dark);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.removal-section {
+  margin-top: 8px;
+}
+
+.removal-section h3 {
+  margin: 6px 0 4px;
+  font-size: 0.95rem;
+  color: var(--accent-dark);
+}
+
+.removal-hint {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#suggestionsList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.confirm-removal-btn {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+  color: white;
+  border-color: var(--accent-dark);
+  box-shadow: 0 2px 0 #5d0a23;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.confirm-removal-btn:hover {
+  background: linear-gradient(180deg, #e0317a, var(--accent));
+}
+
+.confirm-removal-btn:active {
+  box-shadow: 0 0 0 #5d0a23;
+}
+
 .help-icons {
   display: block;
   width: 100%;

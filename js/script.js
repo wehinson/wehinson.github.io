@@ -12,7 +12,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v2.0.0";
+const APP_VERSION = "v2.1.0";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -29,6 +29,27 @@ let saveTimer = null;
 let saveInFlight = false;
 let saveQueued = false;
 let undoState = null;
+const recentErrors = [];
+const ERROR_BUFFER_LIMIT = 20;
+
+function recordError(label, detail) {
+  recentErrors.push({
+    at: new Date().toISOString(),
+    label,
+    detail: String(detail || "").slice(0, 800)
+  });
+  if (recentErrors.length > ERROR_BUFFER_LIMIT) {
+    recentErrors.shift();
+  }
+}
+
+window.addEventListener("error", (event) => {
+  recordError("error", `${event.message} @ ${event.filename}:${event.lineno}:${event.colno}`);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  recordError("unhandledrejection", event.reason?.stack || event.reason || "unknown");
+});
 
 const els = {
   onboarding: document.querySelector("#onboarding"),
@@ -110,6 +131,17 @@ const els = {
   lovedPartner: document.querySelector("#lovedPartner"),
   lovedList: document.querySelector("#lovedList"),
   removedList: document.querySelector("#removedList"),
+  suggestionsList: document.querySelector("#suggestionsList"),
+  suggestionsSection: document.querySelector("#suggestionsSection"),
+  openFeedback: document.querySelector("#openFeedback"),
+  closeFeedback: document.querySelector("#closeFeedback"),
+  feedbackModal: document.querySelector("#feedbackModal"),
+  feedbackText: document.querySelector("#feedbackText"),
+  feedbackDebug: document.querySelector("#feedbackDebug"),
+  feedbackDebugSection: document.querySelector("#feedbackDebugSection"),
+  toggleFeedbackDebug: document.querySelector("#toggleFeedbackDebug"),
+  submitFeedback: document.querySelector("#submitFeedback"),
+  feedbackMessage: document.querySelector("#feedbackMessage"),
   commentsFeed: document.querySelector("#commentsFeed"),
   donationFooter: document.querySelector(".donation-footer"),
   hideDonation: document.querySelector("#hideDonation"),
@@ -235,6 +267,58 @@ function getSavedPasscode() {
 
 function clearSavedPasscode() {
   try { localStorage.removeItem(PASSCODE_STORE_KEY); } catch {}
+}
+
+function buildFeedbackSnapshot() {
+  return {
+    appVersion: APP_VERSION,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    url: location.href,
+    viewport: { w: window.innerWidth, h: window.innerHeight },
+    session: session ? {
+      passcode: session.passcode,
+      mode: session.mode,
+      activeProfile: session.activeProfile,
+      removedCount: session.removedCountryIds?.length || 0,
+      pendingRemovalSuggestions: Object.keys(session.removalSuggestions || {}).length,
+      profile: getActiveProfile && session ? {
+        rounds: getActiveProfile().rounds,
+        lovedCount: getActiveProfile().loved.length,
+        commentsCount: Object.keys(getActiveProfile().comments).length,
+        historyLength: getActiveProfile().history.length
+      } : null
+    } : null,
+    currentPairIds: currentPair?.map((c) => c?.id) || [],
+    rankingView,
+    lovedView,
+    lastAction: els.lastAction?.textContent || "",
+    storageWarning,
+    undoStateActive: Boolean(undoState),
+    recentErrors: [...recentErrors]
+  };
+}
+
+async function submitFeedback(message) {
+  const snapshot = buildFeedbackSnapshot();
+  const payload = { message, snapshot };
+
+  try {
+    const response = await fetch(`${API_BASE_URL.replace(/\/sessions$/, "")}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { error: error.error || "Could not send feedback." };
+    }
+
+    return { ok: true };
+  } catch {
+    return { error: "Could not reach the feedback endpoint." };
+  }
 }
 
 function saveSession(options = {}) {
@@ -1000,6 +1084,43 @@ function renderRemovedList() {
       `<li><a href="${wikipediaUrl(country.name)}" target="_blank" rel="noopener">${escapeHtml(country.name)}</a></li>`
     )).join("")
     : `<li class="empty-list">No removed countries yet.</li>`;
+
+  renderRemovalSuggestions();
+}
+
+function renderRemovalSuggestions() {
+  if (session.mode !== "partner") {
+    els.suggestionsSection.hidden = true;
+    return;
+  }
+
+  const otherProfile = session.activeProfile === "me" ? "partner" : "me";
+  const pending = Object.entries(session.removalSuggestions)
+    .filter(([id, suggester]) => (
+      suggester === otherProfile
+      && !session.removedCountryIds.includes(id)
+      && countryById.has(id)
+    ))
+    .map(([id]) => countryById.get(id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (pending.length === 0) {
+    els.suggestionsSection.hidden = true;
+    return;
+  }
+
+  els.suggestionsSection.hidden = false;
+  els.suggestionsList.innerHTML = pending.map((country) => (
+    `<li><a href="${wikipediaUrl(country.name)}" target="_blank" rel="noopener">${escapeHtml(country.name)}</a> <button class="confirm-removal-btn" data-id="${escapeHtml(country.id)}" type="button">Confirm removal</button></li>`
+  )).join("");
+
+  els.suggestionsList.querySelectorAll(".confirm-removal-btn").forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.id;
+      const name = countryById.get(id)?.name || "Country";
+      removeCountry(id, `${name} removed by agreement`);
+    };
+  });
 }
 
 function renderCommentsFeed() {
@@ -1317,6 +1438,48 @@ els.openHelp.addEventListener("click", () => {
 });
 els.closeHelp.addEventListener("click", () => {
   els.helpModal.close();
+});
+els.openFeedback.addEventListener("click", () => {
+  els.feedbackText.value = "";
+  els.feedbackMessage.textContent = "";
+  els.feedbackDebugSection.hidden = true;
+  els.toggleFeedbackDebug.textContent = "Show debug snapshot";
+  els.feedbackDebug.textContent = JSON.stringify(buildFeedbackSnapshot(), null, 2);
+  els.feedbackModal.showModal();
+  setTimeout(() => els.feedbackText.focus(), 0);
+});
+els.closeFeedback.addEventListener("click", () => {
+  els.feedbackModal.close();
+});
+els.feedbackModal.addEventListener("click", (event) => {
+  if (event.target === els.feedbackModal) {
+    els.feedbackModal.close();
+  }
+});
+els.toggleFeedbackDebug.addEventListener("click", () => {
+  const showing = !els.feedbackDebugSection.hidden;
+  els.feedbackDebugSection.hidden = showing;
+  els.toggleFeedbackDebug.textContent = showing ? "Show debug snapshot" : "Hide debug snapshot";
+  if (!showing) {
+    els.feedbackDebug.textContent = JSON.stringify(buildFeedbackSnapshot(), null, 2);
+  }
+});
+els.submitFeedback.addEventListener("click", async () => {
+  const text = els.feedbackText.value.trim();
+  if (!text) {
+    els.feedbackMessage.textContent = "Add some details before sending.";
+    return;
+  }
+  setBusy(els.submitFeedback, true, "Sending…");
+  const result = await submitFeedback(text);
+  setBusy(els.submitFeedback, false);
+  if (result.error) {
+    els.feedbackMessage.textContent = result.error;
+    return;
+  }
+  els.feedbackMessage.textContent = "Thanks — feedback sent.";
+  els.feedbackText.value = "";
+  setTimeout(() => els.feedbackModal.close(), 1200);
 });
 els.helpModal.addEventListener("click", (event) => {
   if (event.target === els.helpModal) {
