@@ -395,6 +395,14 @@ function saveSessionAndWarn(options = {}) {
   saveSession(options).then(setSaveWarningIfNeeded);
 }
 
+function queueSave() {
+  saveSessionAndWarn();
+}
+
+function queueImmediateSave() {
+  saveSessionAndWarn({ immediate: true });
+}
+
 async function loadOnlineSessionFromInput() {
   setBusy(els.loadSession, true, "Loading...");
   const result = await loadSessionByPasscode(els.passcodeInput.value);
