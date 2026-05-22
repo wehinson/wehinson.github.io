@@ -6,21 +6,27 @@ This is a static version of the country comparison tool. It keeps the same ELO-s
 - `Hard to choose` gives both countries a small `+4` ELO boost
 - `Skip pair` simply moves to another matchup and does not change ratings
 
-Open `index.html` in a browser to use it. The current data was generated from `countries_with_summaries_v2.xlsx`.
+The current data was generated from `countries_with_summaries_v2.xlsx`.
 
-## Local Passcodes
+## Online Passcodes
 
-Progress is saved in this browser with a generated six-digit passcode. A passcode restores progress on the same computer/browser and same site address only for now. Partner mode uses one shared passcode with separate named rankings.
+Progress is saved online through a Cloudflare Pages Function backed by Cloudflare KV. Partner mode uses one shared six-digit passcode with separate named rankings, loved countries, comments, and donation-link preferences for each person.
 
-The saved session shape is intentionally ready for a later Cloudflare storage swap: the app stores profile ratings and rounds separately from the country data.
+The browser no longer uses localStorage or cookies as the save system. If the Cloudflare API is not deployed yet, the app can load visually but passcodes cannot create, save, or restore sessions.
 
 Passcodes are six digits only, such as `482913`.
 
-## Cloudflare Pages
+## Cloudflare Pages Setup
 
-This app has no build step. To publish it on Cloudflare Pages, upload or connect this folder as a static site with `index.html` at the root.
+This app has no build step. To publish it on Cloudflare Pages, upload or connect this folder with `index.html` at the root.
 
-Local saves will be tied to the Cloudflare Pages domain after upload. Cross-device passcodes will require a later Cloudflare Worker plus KV or D1 storage.
+1. Create a Cloudflare Pages project from this folder.
+2. Create a KV namespace in Cloudflare named something like `country-ranker-sessions`.
+3. In the Pages project settings, add a KV binding named exactly `SESSIONS` and connect it to that namespace.
+4. Deploy the Pages project. The file `functions/api/sessions/[[path]].js` becomes the online save API at `/api/sessions`.
+5. Open the deployed site, create a ranking, copy the six-digit passcode, then load that same passcode from another browser/device.
+
+For local Cloudflare testing, install Wrangler and run `npx wrangler pages dev . --kv SESSIONS`. Opening the plain `index.html` file directly will not have the Cloudflare KV API.
 
 ## Country Data Format
 

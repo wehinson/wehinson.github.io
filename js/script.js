@@ -4,11 +4,8 @@ const HARD_TO_CHOOSE_BOOST = 4;
 const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
-const APP_VERSION = "v0.9.0";
-const SESSION_PREFIX = "country-ranker-session-";
-const SESSION_BACKUP_PREFIX = "country-ranker-session-backup-";
-const SESSION_INDEX_KEY = "country-ranker-session-index";
-const LAST_PASSCODE_KEY = "country-ranker-last-passcode";
+const APP_VERSION = "v1.0.0-online";
+const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
 const countryById = new Map(baseCountries.map((country) => [country.id, country]));
@@ -20,6 +17,9 @@ let rankingView = "active";
 let rankingsExpanded = false;
 let lovedView = "me";
 let storageWarning = "";
+let saveTimer = null;
+let saveInFlight = false;
+let saveQueued = false;
 
 const els = {
   onboarding: document.querySelector("#onboarding"),
@@ -40,6 +40,7 @@ const els = {
   backToWelcomeFromExisting: document.querySelector("#backToWelcomeFromExisting"),
   backToWelcomeFromNew: document.querySelector("#backToWelcomeFromNew"),
   newPasscode: document.querySelector("#newPasscode"),
+  newMessage: document.querySelector("#newMessage"),
   meNameInput: document.querySelector("#meNameInput"),
   partnerNameInput: document.querySelector("#partnerNameInput"),
   startSolo: document.querySelector("#startSolo"),
@@ -188,14 +189,6 @@ function makeSession(passcode, mode, profileNames) {
   };
 }
 
-function storageKey(passcode) {
-  return `${SESSION_PREFIX}${normalizePasscode(passcode)}`;
-}
-
-function backupStorageKey(passcode) {
-  return `${SESSION_BACKUP_PREFIX}${normalizePasscode(passcode)}`;
-}
-
 function normalizePasscode(passcode) {
   return String(passcode || "").replace(/\D/g, "").slice(0, 6);
 }
@@ -205,102 +198,226 @@ function isValidPasscode(passcode) {
 }
 
 function generatePasscode() {
-  const passcode = String(Math.floor(100000 + Math.random() * 900000));
-
-  if (readStoredSessionPayload(passcode)) {
-    return generatePasscode();
-  }
-
-  return passcode;
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-function saveSession() {
+function saveSession(options = {}) {
+  if (!session) {
+    return Promise.resolve(false);
+  }
+
+  if (!options.immediate) {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      flushSessionSave();
+    }, 350);
+    return Promise.resolve(true);
+  }
+
+  return flushSessionSave(options);
+}
+
+async function flushSessionSave(options = {}) {
   if (!session) {
     return false;
   }
 
+  if (saveInFlight) {
+    saveQueued = true;
+    return false;
+  }
+
+  saveInFlight = true;
   session.updatedAt = new Date().toISOString();
   const passcode = normalizePasscode(session.passcode);
-  const payload = JSON.stringify(session);
 
   try {
-    localStorage.setItem(storageKey(passcode), payload);
-    localStorage.setItem(backupStorageKey(passcode), payload);
-    localStorage.setItem(LAST_PASSCODE_KEY, passcode);
-    writeSessionIndex(passcode);
+    const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(passcode)}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      keepalive: Boolean(options.keepalive),
+      body: JSON.stringify(session)
+    });
 
-    if (localStorage.getItem(storageKey(passcode)) !== payload) {
-      throw new Error("Storage verification failed");
+    if (!response.ok) {
+      throw new Error(`Save failed with ${response.status}`);
     }
 
     storageWarning = "";
+    if (session) {
+      renderSession(els.lastAction.textContent || "Ready");
+    }
     return true;
-  } catch {
-    storageWarning = "Your browser is not keeping local saves right now. Keep this tab open, or try a normal browser window.";
+  } catch (error) {
+    storageWarning = "Online save is not connected right now. Deploy the Cloudflare API, then reload and try again.";
+    showSaveStateSoon();
     return false;
+  } finally {
+    saveInFlight = false;
+
+    if (saveQueued) {
+      saveQueued = false;
+      flushSessionSave();
+    }
   }
 }
 
-function loadSessionByPasscode(passcode) {
+async function createSession(nextSession) {
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(nextSession)
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return { error: payload.error || "Could not create that online ranking yet." };
+    }
+
+    return { session: hydrateSession(payload.session) };
+  } catch {
+    return { error: "Online save is not connected yet. Deploy the Cloudflare API first, then try again." };
+  }
+}
+
+async function loadSessionByPasscode(passcode) {
   const normalizedPasscode = normalizePasscode(passcode);
 
   if (!isValidPasscode(normalizedPasscode)) {
     return { error: "Enter a six-digit passcode." };
   }
 
-  const saved = readStoredSessionPayload(normalizedPasscode);
-
-  if (!saved) {
-    return { error: "No saved ranking found for that passcode on this computer." };
-  }
-
   try {
-    return { session: hydrateSession(JSON.parse(saved)) };
+    const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(normalizedPasscode)}`);
+
+    if (response.status === 404) {
+      return { error: "No online ranking found for that passcode." };
+    }
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return { error: payload.error || "That online ranking could not be loaded." };
+    }
+
+    return { session: hydrateSession(payload.session) };
   } catch {
-    return { error: "That saved ranking could not be loaded." };
+    return { error: "Online save is not connected yet. Check the Cloudflare API setup." };
   }
 }
 
-function readStoredSessionPayload(passcode) {
-  const normalizedPasscode = normalizePasscode(passcode);
+async function ensureOnlineSession(nextSession) {
+  let attempt = 0;
 
-  try {
-    return localStorage.getItem(storageKey(normalizedPasscode))
-      || localStorage.getItem(backupStorageKey(normalizedPasscode))
-      || readSessionFromIndex(normalizedPasscode);
-  } catch {
-    return null;
+  while (attempt < 5) {
+    const result = await createSession(nextSession);
+
+    if (!result.error) {
+      return result;
+    }
+
+    if (!/already exists/i.test(result.error)) {
+      return result;
+    }
+
+    nextSession.passcode = generatePasscode();
+    attempt += 1;
+  }
+
+  return { error: "Could not find an unused passcode. Try starting again." };
+}
+
+function setBusy(button, isBusy, label) {
+  if (!button) {
+    return;
+  }
+
+  if (isBusy) {
+    button.dataset.originalText = button.textContent;
+    button.textContent = label;
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.disabled = false;
+    delete button.dataset.originalText;
   }
 }
 
-function readSessionFromIndex(passcode) {
-  const index = readSessionIndex();
-  const entry = index[normalizePasscode(passcode)];
-
-  return entry?.payload || null;
-}
-
-function readSessionIndex() {
-  try {
-    return JSON.parse(localStorage.getItem(SESSION_INDEX_KEY) || "{}");
-  } catch {
-    return {};
+function showSaveStateSoon() {
+  if (storageWarning && session) {
+    renderSession(els.lastAction.textContent || "Ready");
   }
 }
 
-function writeSessionIndex(passcode) {
-  const normalizedPasscode = normalizePasscode(passcode);
-  const index = readSessionIndex();
+async function startOnlineSession(mode) {
+  const nextSession = makeSession(els.newPasscode.textContent || generatePasscode(), mode, newSessionNames());
+  const startButton = mode === "partner" ? els.startPartner : els.startSolo;
 
-  index[normalizedPasscode] = {
-    passcode: normalizedPasscode,
-    mode: session.mode,
-    profileNames: session.profileNames,
-    updatedAt: session.updatedAt,
-    payload: JSON.stringify(session)
-  };
+  setBusy(startButton, true, "Creating...");
+  els.newMessage.textContent = "";
 
-  localStorage.setItem(SESSION_INDEX_KEY, JSON.stringify(index));
+  const result = await ensureOnlineSession(nextSession);
+  setBusy(startButton, false);
+
+  if (result.error) {
+    storageWarning = result.error;
+    els.newPasscode.textContent = generatePasscode();
+    els.newMessage.textContent = result.error;
+    return;
+  }
+
+  els.newPasscode.textContent = result.session.passcode;
+
+  if (mode === "partner") {
+    session = result.session;
+    updateProfileChoiceLabels();
+    showPanel(els.profilePanel);
+    return;
+  }
+
+  beginSession(result.session);
+}
+
+function setSaveWarningIfNeeded(saved) {
+  if (!saved && session) {
+    storageWarning = "Online save is not connected right now. Your latest click may not be stored yet.";
+    showSaveStateSoon();
+  }
+}
+
+function saveSessionAndWarn(options = {}) {
+  saveSession(options).then(setSaveWarningIfNeeded);
+}
+
+async function loadOnlineSessionFromInput() {
+  setBusy(els.loadSession, true, "Loading...");
+  const result = await loadSessionByPasscode(els.passcodeInput.value);
+  setBusy(els.loadSession, false);
+
+  if (result.error) {
+    els.existingMessage.textContent = result.error;
+    return;
+  }
+
+  if (result.session.mode === "partner") {
+    session = result.session;
+    updateProfileChoiceLabels();
+    showPanel(els.profilePanel);
+    return;
+  }
+
+  beginSession(result.session);
+}
+
+async function saveBeforeHide() {
+  clearTimeout(saveTimer);
+  await saveSession({ immediate: true, keepalive: true });
 }
 
 function hydrateSession(savedSession) {
@@ -404,7 +521,7 @@ function beginSession(nextSession, profile = "me") {
     getActiveProfile().currentPair = pickPairIds();
   }
 
-  saveSession();
+  queueImmediateSave();
   renderApp("Ready");
   els.onboarding.hidden = true;
 }
@@ -495,7 +612,7 @@ function advance(message, shouldCountRound = true) {
 
   syncActiveRatings();
   profile.currentPair = pickPairIds();
-  saveSession();
+  queueSave();
   renderApp(message);
 }
 
@@ -729,7 +846,7 @@ function renderCommentsFeed() {
 
   els.commentsFeed.innerHTML = comments.length
     ? comments.map((item) => (
-      `<li><strong><a href="${wikipediaUrl(item.country.name)}" target="_blank" rel="noopener">${escapeHtml(item.country.name)}</a> · ${escapeHtml(getProfileName(item.profileName))}</strong><span>${escapeHtml(item.text)}</span></li>`
+      `<li><strong><a href="${wikipediaUrl(item.country.name)}" target="_blank" rel="noopener">${escapeHtml(item.country.name)}</a> &middot; ${escapeHtml(getProfileName(item.profileName))}</strong><span>${escapeHtml(item.text)}</span></li>`
     )).join("")
     : `<li class="empty-list">No comments yet.</li>`;
 }
@@ -788,7 +905,7 @@ function toggleLove(countryId) {
     loved.push(countryId);
   }
 
-  saveSession();
+  queueSave();
   renderApp(index >= 0 ? "Removed from loved countries" : "Saved to loved countries");
 }
 
@@ -805,7 +922,7 @@ function saveComment(countryId, value) {
     delete comments[countryId];
   }
 
-  saveSession();
+  queueSave();
   renderApp(text ? "Comment saved" : "Comment removed");
 }
 
@@ -825,7 +942,7 @@ function handleRemoval(countryId) {
   }
 
   session.removalSuggestions[countryId] = session.activeProfile;
-  saveSession();
+  queueSave();
   renderApp(`${countryName} removal suggested`);
 }
 
@@ -841,7 +958,7 @@ function removeCountry(countryId, message) {
     profile.currentPair = normalizePair(profile.currentPair)?.includes(countryId) ? null : profile.currentPair;
   });
 
-  saveSession();
+  queueSave();
   renderApp(message);
 }
 
@@ -875,7 +992,7 @@ function resetActiveRanking() {
   session.profiles[session.activeProfile].comments = previousProfile.comments;
   session.profiles[session.activeProfile].donationHidden = previousProfile.donationHidden;
   session.profiles[session.activeProfile].currentPair = pickPairIds();
-  saveSession();
+  queueSave();
   renderApp("Active ranking reset");
 }
 
@@ -888,7 +1005,7 @@ function switchProfile() {
     getActiveProfile().currentPair = pickPairIds();
   }
 
-  saveSession();
+  queueImmediateSave();
   renderApp(`${getProfileName(session.activeProfile)} profile loaded`);
 }
 
@@ -915,6 +1032,7 @@ els.showNewSession.addEventListener("click", () => {
   els.newPasscode.textContent = generatePasscode();
   els.meNameInput.value = "";
   els.partnerNameInput.value = "";
+  els.newMessage.textContent = "";
   showPanel(els.newPanel);
   els.meNameInput.focus();
 });
@@ -926,24 +1044,7 @@ els.passcodeInput.addEventListener("input", () => {
 els.backToWelcomeFromExisting.addEventListener("click", () => showPanel(els.welcomePanel));
 els.backToWelcomeFromNew.addEventListener("click", () => showPanel(els.welcomePanel));
 
-els.loadSession.addEventListener("click", () => {
-  const result = loadSessionByPasscode(els.passcodeInput.value);
-
-  if (result.error) {
-    els.existingMessage.textContent = result.error;
-    return;
-  }
-
-  if (result.session.mode === "partner") {
-    session = result.session;
-    updateProfileChoiceLabels();
-    saveSession();
-    showPanel(els.profilePanel);
-    return;
-  }
-
-  beginSession(result.session);
-});
+els.loadSession.addEventListener("click", loadOnlineSessionFromInput);
 
 els.passcodeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -952,14 +1053,11 @@ els.passcodeInput.addEventListener("keydown", (event) => {
 });
 
 els.startSolo.addEventListener("click", () => {
-  beginSession(makeSession(els.newPasscode.textContent, "solo", newSessionNames()));
+  startOnlineSession("solo");
 });
 
 els.startPartner.addEventListener("click", () => {
-  session = makeSession(els.newPasscode.textContent, "partner", newSessionNames());
-  updateProfileChoiceLabels();
-  saveSession();
-  showPanel(els.profilePanel);
+  startOnlineSession("partner");
 });
 
 els.chooseMe.addEventListener("click", () => beginSession(session, "me"));
@@ -982,7 +1080,7 @@ els.hardChoice.addEventListener("click", () => {
 
 els.skipPair.addEventListener("click", () => {
   getActiveProfile().currentPair = pickPairIds();
-  saveSession();
+  queueSave();
   renderApp("Skipped pair");
 });
 
@@ -1013,7 +1111,7 @@ els.lovedPartner.addEventListener("click", () => {
 });
 els.hideDonation.addEventListener("click", () => {
   getActiveProfile().donationHidden = true;
-  saveSession();
+  queueSave();
   renderDonationFooter();
 });
 els.openHelp.addEventListener("click", () => {
@@ -1052,11 +1150,11 @@ document.addEventListener("focusout", (event) => {
   }
 });
 window.addEventListener("pagehide", () => {
-  saveSession();
+  saveBeforeHide();
 });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
-    saveSession();
+    saveBeforeHide();
   }
 });
 els.toggleRankings.addEventListener("click", () => {

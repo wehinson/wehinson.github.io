@@ -12,7 +12,7 @@
         <p class="eyebrow">Country comparison lab</p>
         <p class="version-label" id="appVersionLabel">Version</p>
         <h1>Ready to rank?</h1>
-        <p>Use a six-digit passcode to keep your progress on this computer and browser.</p>
+        <p>Use a six-digit passcode to load your shared online ranking.</p>
         <div class="button-row">
           <button id="showExistingSession" type="button">I have a passcode</button>
           <button class="primary-button" id="showNewSession" type="button">Start new ranking</button>
@@ -34,7 +34,7 @@
       <div class="onboarding-panel" id="newPanel" hidden>
         <p class="eyebrow">New ranking</p>
         <h1>Your passcode is <span id="newPasscode"></span></h1>
-        <p>Write this down. It restores progress on this same computer and browser.</p>
+        <p>Write this down. It restores the online ranking for you and your partner.</p>
         <div class="name-fields">
           <label class="field-label" for="meNameInput">Your name</label>
           <input id="meNameInput" type="text" autocomplete="name" placeholder="Your name">
@@ -45,6 +45,7 @@
           <button class="primary-button" id="startSolo" type="button">Start solo</button>
           <button id="startPartner" type="button">Start with partner</button>
         </div>
+        <p class="hint" id="newMessage"></p>
         <button id="backToWelcomeFromNew" type="button">Back</button>
       </div>
 
@@ -195,7 +196,7 @@
       <div class="help-content">
         <section>
           <h3>Saving progress</h3>
-          <p>Your six-digit passcode restores progress on this same computer, browser, and site address.</p>
+          <p>Your six-digit passcode loads the shared online ranking once the Cloudflare save API is deployed.</p>
         </section>
         <section>
           <h3>Choosing countries</h3>
