@@ -11,7 +11,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.4";
+const APP_VERSION = "v1.2.5";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -755,7 +755,7 @@ function renderPair() {
 }
 
 function renderCountry(side, country) {
-  els[`${side}Panel`].scrollTop = 0;
+  els[`${side}Summary`].scrollTop = 0;
   const previewPhotos = getPreviewPhotos(country.photos);
   const moreButton = els[`${side}MorePhotos`];
   const nameLink = els[`${side}Name`];
