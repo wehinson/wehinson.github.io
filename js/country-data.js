@@ -5426,7 +5426,9 @@
                        "https://entiretravel.imgix.net/getmedia/9e6691e3-a8c3-4411-8b68-9b7323b9dd36/beautiful-nature-tropical-beach-sea.jpg?auto=format"
                    ]
     }
-    const US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID = {
+];
+
+const US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID = {
   "algeria": 2, // Algeria
   "angola": 2, // Angola
   "benin": 2, // Benin
@@ -5638,5 +5640,4 @@ for (const country of window.COUNTRY_DATA) {
     ? US_TRAVEL_ADVISORY_LEVEL_BY_COUNTRY_ID[country.id]
     : null;
 }
-];
 
