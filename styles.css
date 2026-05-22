@@ -419,8 +419,31 @@ h1 .passcode-copy-btn {
   font-size: 0.86rem;
 }
 
-.advisory-indicator {
+.country-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+
+.country-stats p {
   margin: 0;
+}
+
+.advisory-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.advisory-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .advisory-badge {

@@ -11,7 +11,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.3";
+const APP_VERSION = "v1.2.4";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -777,7 +777,7 @@ function renderCountry(side, country) {
   const advisoryInfo = ADVISORY_INFO[country.advisoryLevel];
   const advisoryEl = els[`${side}Advisory`];
   if (advisoryInfo) {
-    advisoryEl.innerHTML = `<span class="advisory-badge advisory-${country.advisoryLevel}" title="US Travel Advisory: ${advisoryInfo.title}">${advisoryInfo.label}</span>`;
+    advisoryEl.innerHTML = `<span class="advisory-label">Travel advisory</span><span class="advisory-badge advisory-${country.advisoryLevel}" title="US State Dept: ${advisoryInfo.title}">${advisoryInfo.label}</span>`;
     advisoryEl.hidden = false;
   } else {
     advisoryEl.hidden = true;
