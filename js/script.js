@@ -5,7 +5,13 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.2.1";
+const ADVISORY_INFO = {
+  1: { label: "Level 1 · Normal",        title: "Exercise Normal Precautions"  },
+  2: { label: "Level 2 · Caution",       title: "Exercise Increased Caution"   },
+  3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
+  4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
+};
+const APP_VERSION = "v1.2.2";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -60,6 +66,8 @@ const els = {
   roundCount: document.querySelector("#roundCount"),
   leftPanel: document.querySelector("#leftPanel"),
   rightPanel: document.querySelector("#rightPanel"),
+  leftAdvisory: document.querySelector("#leftAdvisory"),
+  rightAdvisory: document.querySelector("#rightAdvisory"),
   leftPhotos: document.querySelector("#leftPhotos"),
   leftName: document.querySelector("#leftName"),
   leftSummary: document.querySelector("#leftSummary"),
@@ -123,7 +131,8 @@ function normalizeCountries(input) {
       id: String(country.id || slugify(name)).trim(),
       name,
       summary,
-      photos
+      photos,
+      advisoryLevel: Number.isInteger(country.usTravelAdvisoryLevel) ? country.usTravelAdvisoryLevel : null
     };
   });
 
@@ -765,6 +774,14 @@ function renderCountry(side, country) {
   nameLink.href = wikipediaUrl(country.name);
   els[`${side}Summary`].textContent = country.summary;
   els[`${side}Rating`].textContent = `ELO ${country.rating}`;
+  const advisoryInfo = ADVISORY_INFO[country.advisoryLevel];
+  const advisoryEl = els[`${side}Advisory`];
+  if (advisoryInfo) {
+    advisoryEl.innerHTML = `<span class="advisory-badge advisory-${country.advisoryLevel}" title="US Travel Advisory: ${advisoryInfo.title}">${advisoryInfo.label}</span>`;
+    advisoryEl.hidden = false;
+  } else {
+    advisoryEl.hidden = true;
+  }
   renderCountryActionButtons(country, loveButton, removalButton);
   renderCommentBox(country, commentInput, saveCommentButton);
   moreButton.hidden = country.photos.length <= PREVIEW_PHOTOS;
