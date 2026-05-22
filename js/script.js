@@ -12,7 +12,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.9";
+const APP_VERSION = "v1.3.0";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -485,7 +485,7 @@ function hydrateSession(savedSession) {
 
     Object.entries(savedProfile.ratings || {}).forEach(([id, rating]) => {
       if (countryById.has(id) && Number.isFinite(rating)) {
-        restoredProfile.ratings[id] = rating;
+        restoredProfile.ratings[id] = Math.max(1, rating);
       }
     });
   });
@@ -604,13 +604,13 @@ function applyWin(winner, loser) {
   const winnerExpected = expectedScore(winner, loser);
   const loserExpected = expectedScore(loser, winner);
 
-  winner.rating = Math.round(winner.rating + WIN_K * (1 - winnerExpected));
-  loser.rating = Math.round(loser.rating + WIN_K * (0 - loserExpected));
+  winner.rating = Math.max(1, Math.round(winner.rating + WIN_K * (1 - winnerExpected)));
+  loser.rating = Math.max(1, Math.round(loser.rating + WIN_K * (0 - loserExpected)));
 }
 
 function applyHardChoice(a, b) {
-  a.rating += HARD_TO_CHOOSE_BOOST;
-  b.rating += HARD_TO_CHOOSE_BOOST;
+  a.rating = Math.max(1, a.rating + HARD_TO_CHOOSE_BOOST);
+  b.rating = Math.max(1, b.rating + HARD_TO_CHOOSE_BOOST);
 }
 
 function weightedPickIndex(weights) {
