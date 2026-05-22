@@ -532,6 +532,7 @@ function beginSession(nextSession, profile = "me") {
   queueImmediateSave();
   renderApp("Ready");
   els.onboarding.hidden = true;
+  document.querySelector("main.app").hidden = false;
 }
 
 function showPanel(panel) {
