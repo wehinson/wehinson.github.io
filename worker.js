@@ -1,5 +1,6 @@
 const SESSION_PREFIX = "session:";
 const PASSCODE_PATTERN = /^\d{6}$/;
+const BODY_SIZE_LIMIT = 512 * 1024; // 512 KB — generous for real use, blocks abuse
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,10 +106,22 @@ async function saveSession(request, sessions, passcode) {
 }
 
 async function readSessionBody(request) {
+  let rawText;
+
+  try {
+    rawText = await request.text();
+  } catch {
+    return { ok: false, error: "Send session data as JSON." };
+  }
+
+  if (rawText.length > BODY_SIZE_LIMIT) {
+    return { ok: false, error: "Session data exceeds the 512 KB size limit." };
+  }
+
   let session;
 
   try {
-    session = await request.json();
+    session = JSON.parse(rawText);
   } catch {
     return { ok: false, error: "Send session data as JSON." };
   }

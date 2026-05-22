@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.1.7";
+const APP_VERSION = "v1.1.8";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -21,6 +21,7 @@ let storageWarning = "";
 let saveTimer = null;
 let saveInFlight = false;
 let saveQueued = false;
+let undoState = null;
 
 const els = {
   onboarding: document.querySelector("#onboarding"),
@@ -79,6 +80,7 @@ const els = {
   rightChoose: document.querySelector("#rightChoose"),
   hardChoice: document.querySelector("#hardChoice"),
   skipPair: document.querySelector("#skipPair"),
+  undoChoice: document.querySelector("#undoChoice"),
   resetRatings: document.querySelector("#resetRatings"),
   lastAction: document.querySelector("#lastAction"),
   rankingControls: document.querySelector("#rankingControls"),
@@ -659,6 +661,30 @@ function advance(message, shouldCountRound = true) {
   renderApp(message);
 }
 
+function saveUndoState() {
+  const profile = getActiveProfile();
+  undoState = {
+    pairIds: [currentPair[0].id, currentPair[1].id],
+    ratingA: profile.ratings[currentPair[0].id],
+    ratingB: profile.ratings[currentPair[1].id],
+    rounds: profile.rounds,
+    historyLen: profile.history.length
+  };
+}
+
+function undoLastChoice() {
+  if (!undoState || !session) return;
+  const profile = getActiveProfile();
+  profile.ratings[undoState.pairIds[0]] = undoState.ratingA;
+  profile.ratings[undoState.pairIds[1]] = undoState.ratingB;
+  profile.rounds = undoState.rounds;
+  profile.history.splice(undoState.historyLen);
+  profile.currentPair = undoState.pairIds;
+  undoState = null;
+  queueSave();
+  renderApp("Undid last choice");
+}
+
 function renderApp(message = els.lastAction.textContent || "Ready") {
   countries = buildCountriesForActiveProfile();
   setCurrentPairFromProfile();
@@ -692,6 +718,7 @@ function renderPair() {
   [els.leftChoose, els.rightChoose, els.hardChoice, els.skipPair].forEach((button) => {
     button.disabled = !hasPair;
   });
+  els.undoChoice.disabled = !undoState;
 
   if (!hasPair) {
     return;
@@ -1050,6 +1077,7 @@ function escapeHtml(value) {
 }
 
 function resetActiveRanking() {
+  undoState = null;
   const previousProfile = getActiveProfile();
   session.profiles[session.activeProfile] = makeProfile();
   session.profiles[session.activeProfile].loved = previousProfile.loved;
@@ -1061,6 +1089,7 @@ function resetActiveRanking() {
 }
 
 function switchProfile() {
+  undoState = null;
   session.activeProfile = session.activeProfile === "me" ? "partner" : "me";
   rankingView = "active";
   lovedView = session.activeProfile;
@@ -1146,22 +1175,27 @@ els.chooseMe.addEventListener("click", () => beginSession(session, "me"));
 els.choosePartner.addEventListener("click", () => beginSession(session, "partner"));
 
 els.leftChoose.addEventListener("click", () => {
+  saveUndoState();
   applyWin(currentPair[0], currentPair[1]);
   getActiveProfile().history.push(`${currentPair[0].id}>${currentPair[1].id}`);
   advance(`${currentPair[0].name} chosen`);
 });
 
 els.rightChoose.addEventListener("click", () => {
+  saveUndoState();
   applyWin(currentPair[1], currentPair[0]);
   getActiveProfile().history.push(`${currentPair[1].id}>${currentPair[0].id}`);
   advance(`${currentPair[1].name} chosen`);
 });
 
 els.hardChoice.addEventListener("click", () => {
+  saveUndoState();
   applyHardChoice(currentPair[0], currentPair[1]);
   getActiveProfile().history.push(`${currentPair[0].id}~${currentPair[1].id}`);
   advance("Hard to choose: both countries got a small boost");
 });
+
+els.undoChoice.addEventListener("click", undoLastChoice);
 
 els.skipPair.addEventListener("click", () => {
   getActiveProfile().currentPair = pickPairIds();
@@ -1282,8 +1316,7 @@ document.addEventListener("keydown", (event) => {
       if (inGame) { event.preventDefault(); els.skipPair.click(); }
       break;
     case "/":
-      event.preventDefault();
-      els.helpModal.open ? els.helpModal.close() : els.helpModal.showModal();
+      if (undoState) { event.preventDefault(); undoLastChoice(); }
       break;
   }
 });
