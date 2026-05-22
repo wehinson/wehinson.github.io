@@ -205,27 +205,39 @@
       <div class="help-content">
         <section>
           <h3>Saving progress</h3>
-          <p>Your six-digit passcode loads the shared online ranking once the Cloudflare save API is deployed.</p>
+          <p>Your six-digit passcode is saved automatically so the app reopens where you left off. You can also tap the passcode chip at the top of the screen to copy it and share it with your partner.</p>
         </section>
         <section>
           <h3>Choosing countries</h3>
-          <p>Pick the country you prefer. Hard to choose gives both a small boost. Skip changes the pair without changing rankings.</p>
+          <p>Pick the country you prefer. <strong>Hard to choose</strong> gives both a small ELO boost. <strong>Skip</strong> moves to a new pair without changing any scores. <strong>Undo</strong> reverses your last choice — ratings, round count, and history all revert.</p>
+        </section>
+        <section>
+          <h3>How countries are paired</h3>
+          <p>Matchups are not random. Countries you have seen less often appear more frequently. The second country is chosen to be close in rating to the first. After many rounds the app gradually focuses more on your top 25 countries to help refine the list.</p>
         </section>
         <section>
           <h3>Partner rankings</h3>
-          <p>Each person has separate rankings. Together combines both lists by average rank.</p>
+          <p>Each person ranks independently. The <strong>Together</strong> view combines both lists by averaging ELO scores. Switch between profiles using the button in the session bar — your own rankings are not affected by your partner's choices.</p>
         </section>
         <section>
-          <h3>Love and removal</h3>
-          <p>The heart saves a country to your own loved list. Suggest removal asks the other person to agree before that country leaves future matchups.</p>
+          <h3>Love, removal, and comments</h3>
+          <p>The heart adds a country to your personal loved list. <strong>Suggest removal</strong> flags a country for removal pending your partner's agreement. Comments are per profile and per country — a dot next to the Comment label means your partner has left a note on that country.</p>
+        </section>
+        <section>
+          <h3>Keyboard shortcuts</h3>
+          <p><strong>[</strong> choose left &nbsp;·&nbsp; <strong>]</strong> choose right &nbsp;·&nbsp; <strong>,</strong> hard to choose &nbsp;·&nbsp; <strong>.</strong> skip &nbsp;·&nbsp; <strong>/</strong> undo</p>
+        </section>
+        <section>
+          <h3>Travel advisories</h3>
+          <p>Each country shows a US State Department travel advisory level where available: Level 1 normal through Level 4 do not travel. Hover the badge for the full description.</p>
         </section>
       </div>
     </dialog>
 
     <div class="floating-tooltip" id="floatingTooltip" role="tooltip" hidden></div>
 
-    <script src="js/country-data.js?v=1.2.7"></script>
-    <script src="js/script.js?v=1.2.7"></script>
+    <script src="js/country-data.js?v=1.2.8"></script>
+    <script src="js/script.js?v=1.2.8"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=BAAXLgoIxPMPmxuYhV8ZN4bfThnNigqFUmrcbJ77ELnuIAehDnwPyiaJ-endmZw_LsEObAOfbziiyoCWag&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
     <script>
       window.addEventListener("load", () => {
