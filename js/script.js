@@ -11,7 +11,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.5";
+const APP_VERSION = "v1.2.6";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -33,6 +33,7 @@ const els = {
   onboarding: document.querySelector("#onboarding"),
   welcomePanel: document.querySelector("#welcomePanel"),
   appVersionLabel: document.querySelector("#appVersionLabel"),
+  profileVersionLabel: document.querySelector("#profileVersionLabel"),
   existingPanel: document.querySelector("#existingPanel"),
   newPanel: document.querySelector("#newPanel"),
   profilePanel: document.querySelector("#profilePanel"),
@@ -1374,6 +1375,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 els.appVersionLabel.textContent = APP_VERSION;
+els.profileVersionLabel.textContent = APP_VERSION;
 
 (async () => {
   const saved = getSavedPasscode();
