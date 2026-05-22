@@ -5,7 +5,7 @@ const MAX_PHOTOS = 20;
 const PREVIEW_PHOTOS = 4;
 const RANKING_PREVIEW_COUNT = 15;
 const TOP_FOCUS_COUNT = 25;
-const APP_VERSION = "v1.1.8";
+const APP_VERSION = "v1.1.9";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -58,6 +58,8 @@ const els = {
   changeSession: document.querySelector("#changeSession"),
   countryCount: document.querySelector("#countryCount"),
   roundCount: document.querySelector("#roundCount"),
+  leftPanel: document.querySelector("#leftPanel"),
+  rightPanel: document.querySelector("#rightPanel"),
   leftPhotos: document.querySelector("#leftPhotos"),
   leftName: document.querySelector("#leftName"),
   leftSummary: document.querySelector("#leftSummary"),
@@ -729,6 +731,7 @@ function renderPair() {
 }
 
 function renderCountry(side, country) {
+  els[`${side}Panel`].scrollTop = 0;
   const previewPhotos = getPreviewPhotos(country.photos);
   const moreButton = els[`${side}MorePhotos`];
   const nameLink = els[`${side}Name`];
