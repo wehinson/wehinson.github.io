@@ -1,14 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mapcrush",
-  "compatibility_date": "2026-05-12",
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "."
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
+  "name": "country-ranker",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-05-21",
+  "kv_namespaces": [
+    {
+      "binding": "KV_BINDING",
+      "id": "eaaf7c5fcdad40a5b7c9da2afe4dfb79"
+    }
   ]
 }

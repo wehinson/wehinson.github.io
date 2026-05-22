@@ -9,20 +9,21 @@ const corsHeaders = {
 
 export async function onRequest(context) {
   const { request, env } = context;
+  const sessions = getSessionStore(env);
 
   if (request.method === "OPTIONS") {
     return jsonResponse({}, 204);
   }
 
-  if (!env.SESSIONS) {
-    return jsonResponse({ error: "Cloudflare KV binding SESSIONS is missing." }, 500);
+  if (!sessions) {
+    return jsonResponse({ error: "Cloudflare KV binding is missing. Add a KV binding named KV_BINDING, SESSIONS, or KV." }, 500);
   }
 
   const url = new URL(request.url);
   const passcode = url.pathname.split("/").filter(Boolean).at(-1);
 
   if (request.method === "POST") {
-    return createSession(request, env);
+    return createSession(request, sessions);
   }
 
   if (!PASSCODE_PATTERN.test(passcode || "")) {
@@ -30,17 +31,21 @@ export async function onRequest(context) {
   }
 
   if (request.method === "GET") {
-    return getSession(env, passcode);
+    return getSession(sessions, passcode);
   }
 
   if (request.method === "PUT") {
-    return saveSession(request, env, passcode);
+    return saveSession(request, sessions, passcode);
   }
 
   return jsonResponse({ error: "Method not allowed." }, 405);
 }
 
-async function createSession(request, env) {
+function getSessionStore(env) {
+  return env.KV_BINDING || env.SESSIONS || env.KV || null;
+}
+
+async function createSession(request, sessions) {
   const session = await readSessionBody(request);
 
   if (!session.ok) {
@@ -49,18 +54,18 @@ async function createSession(request, env) {
 
   const passcode = session.value.passcode;
   const key = sessionKey(passcode);
-  const existing = await env.SESSIONS.get(key);
+  const existing = await sessions.get(key);
 
   if (existing) {
     return jsonResponse({ error: "That passcode already exists." }, 409);
   }
 
-  await env.SESSIONS.put(key, JSON.stringify(session.value));
+  await sessions.put(key, JSON.stringify(session.value));
   return jsonResponse({ session: session.value }, 201);
 }
 
-async function getSession(env, passcode) {
-  const saved = await env.SESSIONS.get(sessionKey(passcode));
+async function getSession(sessions, passcode) {
+  const saved = await sessions.get(sessionKey(passcode));
 
   if (!saved) {
     return jsonResponse({ error: "No online ranking found for that passcode." }, 404);
@@ -73,7 +78,7 @@ async function getSession(env, passcode) {
   }
 }
 
-async function saveSession(request, env, passcode) {
+async function saveSession(request, sessions, passcode) {
   const session = await readSessionBody(request);
 
   if (!session.ok) {
@@ -84,7 +89,7 @@ async function saveSession(request, env, passcode) {
     return jsonResponse({ error: "Passcode in the URL and saved data must match." }, 400);
   }
 
-  await env.SESSIONS.put(sessionKey(passcode), JSON.stringify(session.value));
+  await sessions.put(sessionKey(passcode), JSON.stringify(session.value));
   return jsonResponse({ session: session.value });
 }
 

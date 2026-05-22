@@ -22,11 +22,11 @@ This app has no build step. To publish it on Cloudflare Pages, upload or connect
 
 1. Create a Cloudflare Pages project from this folder.
 2. Create a KV namespace in Cloudflare named something like `country-ranker-sessions`.
-3. In the Pages project settings, add a KV binding named exactly `SESSIONS` and connect it to that namespace.
+3. In the Pages project settings, add a KV binding named `KV_BINDING`, `SESSIONS`, or `KV` and connect it to that namespace. The included `wrangler.jsonc` already declares `KV_BINDING`.
 4. Deploy the Pages project. The file `functions/api/sessions/[[path]].js` becomes the online save API at `/api/sessions`.
 5. Open the deployed site, create a ranking, copy the six-digit passcode, then load that same passcode from another browser/device.
 
-For local Cloudflare testing, install Wrangler and run `npx wrangler pages dev . --kv SESSIONS`. Opening the plain `index.html` file directly will not have the Cloudflare KV API.
+For local Cloudflare testing, install Wrangler and run `npx wrangler pages dev .`. Opening the plain `index.html` file directly will not have the Cloudflare KV API.
 
 ## Country Data Format
 
