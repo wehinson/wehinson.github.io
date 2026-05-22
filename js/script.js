@@ -11,7 +11,7 @@ const ADVISORY_INFO = {
   3: { label: "Level 3 · Reconsider",    title: "Reconsider Travel"            },
   4: { label: "Level 4 · Do Not Travel", title: "Do Not Travel"                }
 };
-const APP_VERSION = "v1.2.6";
+const APP_VERSION = "v1.2.7";
 const API_BASE_URL = window.COUNTRY_RANKER_API_URL || "/api/sessions";
 
 const baseCountries = normalizeCountries(window.COUNTRY_DATA || []);
@@ -75,6 +75,7 @@ const els = {
   leftRating: document.querySelector("#leftRating"),
   leftLove: document.querySelector("#leftLove"),
   leftSuggestRemoval: document.querySelector("#leftSuggestRemoval"),
+  leftCommentBox: document.querySelector("#leftPanel .comment-box"),
   leftComment: document.querySelector("#leftComment"),
   leftSaveComment: document.querySelector("#leftSaveComment"),
   leftMorePhotos: document.querySelector("#leftMorePhotos"),
@@ -84,6 +85,7 @@ const els = {
   rightRating: document.querySelector("#rightRating"),
   rightLove: document.querySelector("#rightLove"),
   rightSuggestRemoval: document.querySelector("#rightSuggestRemoval"),
+  rightCommentBox: document.querySelector("#rightPanel .comment-box"),
   rightComment: document.querySelector("#rightComment"),
   rightSaveComment: document.querySelector("#rightSaveComment"),
   rightMorePhotos: document.querySelector("#rightMorePhotos"),
@@ -738,9 +740,20 @@ function renderSession(message) {
   els.storageWarning.textContent = storageWarning;
 }
 
+function syncCommentExpansion() {
+  const leftOpen = els.leftCommentBox.open;
+  const rightOpen = els.rightCommentBox.open;
+  els.leftSummary.classList.toggle("summary-expanded", rightOpen && !leftOpen);
+  els.rightSummary.classList.toggle("summary-expanded", leftOpen && !rightOpen);
+}
+
 function renderPair() {
   const [left, right] = currentPair;
   const hasPair = Boolean(left && right);
+
+  els.leftCommentBox.open = false;
+  els.rightCommentBox.open = false;
+  syncCommentExpansion();
 
   [els.leftChoose, els.rightChoose, els.hardChoice, els.skipPair].forEach((button) => {
     button.disabled = !hasPair;
@@ -825,11 +838,19 @@ function renderCommentBox(country, commentInput, saveCommentButton) {
   const summary = details.querySelector("summary");
   const hasSaved = Boolean(comment?.text);
 
+  const otherProfile = session.activeProfile === "me" ? "partner" : "me";
+  const partnerNote = session.mode === "partner"
+    ? session.profiles[otherProfile]?.comments[country.id]?.text || ""
+    : "";
+  const partnerDot = partnerNote
+    ? ` <span class="partner-comment-dot" title="${escapeHtml(getProfileName(otherProfile))}: ${escapeHtml(partnerNote)}">&#9679;</span>`
+    : "";
+
   commentInput.value = comment?.text || "";
   commentInput.readOnly = hasSaved;
   saveCommentButton.textContent = hasSaved ? "Edit" : "Save comment";
   details.classList.toggle("has-comment", hasSaved);
-  summary.textContent = hasSaved ? "Comment ✓" : "Comment";
+  summary.innerHTML = (hasSaved ? "Comment ✓" : "Comment") + partnerDot;
 
   saveCommentButton.onclick = () => {
     if (commentInput.readOnly) {
@@ -1332,6 +1353,9 @@ els.toggleRankings.addEventListener("click", () => {
   rankingsExpanded = !rankingsExpanded;
   renderRankings();
 });
+els.leftCommentBox.addEventListener("toggle", syncCommentExpansion);
+els.rightCommentBox.addEventListener("toggle", syncCommentExpansion);
+
 els.changeSession.addEventListener("click", () => {
   clearSavedPasscode();
   session = null;

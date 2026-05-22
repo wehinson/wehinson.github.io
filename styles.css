@@ -391,6 +391,18 @@ h1 .passcode-copy-btn {
   color: var(--accent-dark);
 }
 
+.partner-comment-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-dark);
+  vertical-align: middle;
+  margin-left: 3px;
+  cursor: help;
+  font-size: 0;
+}
+
 .comment-box textarea {
   width: 100%;
   margin: 8px 0;
@@ -401,6 +413,10 @@ h1 .passcode-copy-btn {
   color: var(--ink);
   font: inherit;
   line-height: 1.35;
+}
+
+.summary-expanded {
+  max-height: none !important;
 }
 
 .comment-box textarea[readonly] {
