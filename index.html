@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MapCrush</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2.0.0">
   </head>
   <body>
     <section class="onboarding" id="onboarding" aria-label="Start ranking">
       <div class="onboarding-panel" id="welcomePanel">
-        <p class="eyebrow">MapCrush</p>
+        <img class="welcome-hero" src="img/hero.png" alt="">
+        <img class="welcome-logo" src="img/logo.png" alt="MapCrush">
         <p class="version-label" id="appVersionLabel">Version</p>
         <h1>Ready to rank?</h1>
         <p>Use a six-digit passcode to load your shared online ranking.</p>
@@ -61,7 +62,7 @@
       </div>
 
       <div class="onboarding-panel" id="resumePanel" hidden>
-        <p class="eyebrow">MapCrush</p>
+        <img class="welcome-logo" src="img/logo.png" alt="MapCrush">
         <p class="version-label" id="resumeVersionLabel">Version</p>
         <h1>Resuming…</h1>
         <p>Loading your ranking.</p>
@@ -70,9 +71,12 @@
 
     <main class="app" hidden>
       <header class="topbar">
-        <div>
-          <p class="eyebrow">MapCrush</p>
-          <h1>Choose the country you prefer</h1>
+        <div class="topbar-brand">
+          <img class="topbar-logo" src="favicon.png" alt="">
+          <div>
+            <p class="eyebrow">MapCrush</p>
+            <h1>Choose the country you prefer</h1>
+          </div>
         </div>
         <div class="status">
           <button class="help-button" id="openHelp" type="button">Help</button>
@@ -165,6 +169,7 @@
         </div>
 
         <div class="loved-panel">
+          <img class="loved-banner" src="img/badges.png" alt="">
           <div class="section-heading">
             <h2>Loved countries</h2>
           </div>
@@ -210,6 +215,7 @@
         <button id="closeHelp" type="button" aria-label="Close help">Close</button>
       </div>
       <div class="help-content">
+        <img class="help-icons" src="img/icons.png" alt="">
         <section>
           <h3>Saving progress</h3>
           <p>Your six-digit passcode is saved automatically so the app reopens where you left off. You can also tap the passcode chip at the top of the screen to copy it and share it with your partner.</p>
@@ -243,8 +249,8 @@
 
     <div class="floating-tooltip" id="floatingTooltip" role="tooltip" hidden></div>
 
-    <script src="js/country-data.js?v=1.3.0"></script>
-    <script src="js/script.js?v=1.3.0"></script>
+    <script src="js/country-data.js?v=2.0.0"></script>
+    <script src="js/script.js?v=2.0.0"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=BAAXLgoIxPMPmxuYhV8ZN4bfThnNigqFUmrcbJ77ELnuIAehDnwPyiaJ-endmZw_LsEObAOfbziiyoCWag&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
     <script>
       window.addEventListener("load", () => {
