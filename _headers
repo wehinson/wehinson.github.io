@@ -1,0 +1,5 @@
+/js/country-data.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/script.js
+  Cache-Control: public, max-age=31536000, immutable

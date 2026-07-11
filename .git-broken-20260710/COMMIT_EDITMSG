@@ -1,0 +1,8 @@
+chore(branches): bump version to 2.1.2, record country summary merge
+
+Why:
+- Keeps BRANCHES.md accurate after merging codex/create-country-summary-generation-script into main.
+
+What changed:
+- Bumped Current version to 2.1.2.
+- Added merge record for add_country_summaries.py in Merged To Main table.

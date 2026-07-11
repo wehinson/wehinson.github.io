@@ -1,0 +1,5 @@
+# pack-refs with: peeled fully-peeled sorted 
+ef406900dd1680a08473e817d12e36cd066547c8 refs/remotes/origin/cloudflare/workers-autoconfig
+11d8ae65b4bb589104b4c0125a3c98940193e9c0 refs/remotes/origin/codex/create-country-summary-generation-script
+342833193547cc65a24802f1df9abc2e8ea03a67 refs/remotes/origin/codex/prototype-a-tinder-like-country-comparison-app
+2aa5c6fa0237623e5fc4180d107692b160e87ea0 refs/remotes/origin/master

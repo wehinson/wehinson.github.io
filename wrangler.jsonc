@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mapcrush",
+  "main": "worker.js",
+  "compatibility_date": "2026-05-21",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "KV_BINDING",
+      "id": "eaaf7c5fcdad40a5b7c9da2afe4dfb79"
+    }
+  ]
+}
